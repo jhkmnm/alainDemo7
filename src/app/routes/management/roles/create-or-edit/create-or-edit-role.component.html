@@ -1,0 +1,71 @@
+<!-- <div class="modal-header">
+  <div class="modal-title">
+    <span *ngIf="editDto.id"> {{ l('Edit') }} : {{ editName }} </span>
+    <span *ngIf="!editDto.id"> {{ l('Add') }}</span>
+  </div>
+</div> -->
+
+<nz-spin [nzSpinning]="saving">
+  <form nz-form [formGroup]="form" (ngSubmit)="save()" role="form">
+    <!-- 名称 -->
+    <nz-form-item>
+      <nz-form-label style="text-align: center" nzSm="4" nzFor="name" nzRequired>名称</nz-form-label>
+      <nz-form-control [nzErrorTip]="nameValidationTpl" nzHasFeedback nzSm="20">
+        <input nz-input name="name" [(ngModel)]="editDto.name" [placeholder]="'名称'" required autocomplete="off" />
+        <ng-template #nameValidationTpl let-control>
+          <validation-messages [formCtrl]="control"></validation-messages>
+        </ng-template>
+      </nz-form-control>
+    </nz-form-item>
+
+    <!-- 展示名称 -->
+    <nz-form-item>
+      <nz-form-label style="text-align: center" nzSm="4" nzFor="displayName" nzRequired>展示名称</nz-form-label>
+      <nz-form-control [nzErrorTip]="displayNameValidationTpl" nzHasFeedback nzSm="20">
+        <input nz-input name="displayName" [(ngModel)]="editDto.displayName" [placeholder]="'展示名称'" required autocomplete="off" />
+        <ng-template #displayNameValidationTpl let-control>
+          <validation-messages [formCtrl]="control"></validation-messages>
+        </ng-template>
+      </nz-form-control>
+    </nz-form-item>
+
+    <!-- 是否默认 -->
+    <nz-form-item>
+      <nz-form-label style="text-align: center" nzSm="4" nzFor="isDefault" nzRequired>是否默认</nz-form-label>
+      <nz-form-control [nzErrorTip]="isDefaultValidationTpl" nzHasFeedback nzSm="20">
+        <input nz-input name="isDefault" [(ngModel)]="editDto.isDefault" [placeholder]="'是否默认'" required autocomplete="off" />
+        <ng-template #isDefaultValidationTpl let-control>
+          <validation-messages [formCtrl]="control"></validation-messages>
+        </ng-template>
+      </nz-form-control>
+    </nz-form-item>
+
+    <!-- 正式名称 -->
+    <nz-form-item>
+      <nz-form-label style="text-align: center" nzSm="4" nzFor="normalizedName" nzRequired>正式名称</nz-form-label>
+      <nz-form-control [nzErrorTip]="normalizedNameValidationTpl" nzHasFeedback nzSm="20">
+        <input
+          nz-input
+          name="normalizedName"
+          [(ngModel)]="editDto.normalizedName"
+          [placeholder]="'正式名称'"
+          required
+          autocomplete="off"
+        />
+        <ng-template #normalizedNameValidationTpl let-control>
+          <validation-messages [formCtrl]="control"></validation-messages>
+        </ng-template>
+      </nz-form-control>
+    </nz-form-item>
+
+    <!-- 功能按钮 -->
+    <div class="modal-footer">
+      <button nz-button type="button" [disabled]="saving" (click)="close()">
+        {{ l('Cancel') }}
+      </button>
+      <button nz-button [nzType]="'primary'" type="submit">
+        {{ l('Save') }}
+      </button>
+    </div>
+  </form>
+</nz-spin>

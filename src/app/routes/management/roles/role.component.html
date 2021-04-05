@@ -1,0 +1,160 @@
+<page-header> </page-header>
+<nz-card [nzBordered]="false">
+   <form nz-form  (ngSubmit)="refresh()" class="search__form">
+      <div nz-row [nzGutter]="{ xs: 8, sm: 8, md: 8, lg: 24, xl: 48, xxl: 48 }">
+         <div nz-col nzMd="8" nzSm="24">
+            <nz-form-item>
+               <nz-form-label nzFor="filterText">关键字</nz-form-label>
+               <nz-form-control>
+                  <input
+                  nz-input
+                  [(ngModel)]="filterText"
+                  name="filterText"
+                  placeholder="关键字"
+                  id="filterText"
+                  autocomplete="off"
+                  />
+               </nz-form-control>
+            </nz-form-item>
+         </div>
+         <div nz-col nz-col nzMd="8" nzSm="24">
+            <nz-form-item nzAlign="middle">
+               <nz-button-group>
+                  <button nz-button [nzType]="'primary'" type="submit" [nzLoading]="isTableLoading">
+                  {{ "Query" | translate }}
+                  </button>
+                  <button nz-button nzGhost="true" nzType="primary" type="reset" style="margin-left:5px;">
+                  {{ "Reset" | translate }}
+                  </button>
+               </nz-button-group>
+            </nz-form-item>
+         </div>
+      </div>
+   </form>
+   <button nz-button [nzType]="'primary'" *ngIf="isGranted('Pages.Administration.Roles.Create')"
+      (click)="create(modalContent)">
+      <i nz-icon nzType="plus"></i>
+      <span>
+         {{"CreateNewRole" | translate}}
+      </span>
+   </button>
+   <ng-container *ngIf="selectedDataItems.length > 0">
+      <button nz-button [nzType]="'danger'" *ngIf="isGranted('Pages.Administration.Roles.Delete')"
+         (click)="batchDelete()">
+         <i nz-icon nzType="delete"></i>
+         <span>
+            {{ "DeleteSelected" | translate }}
+         </span>
+      </button>
+   </ng-container>
+   <div class="my-md">
+      <nz-alert [nzType]="'info'" [nzShowIcon]="true" [nzMessage]="message">
+         <ng-template #message>
+            <span>
+               <strong class="text-primary">{{selectedDataItems.length}}</strong> {{ "items selected" | translate }}
+            </span>
+            <a (click)="restCheckStatus(dataList)" *ngIf="selectedDataItems.length>0" class="ml-md">
+               {{'Clear' | translate}}
+            </a>
+            <nz-divider nzType="vertical"></nz-divider>
+            <a (click)="refresh()">
+               {{'Refresh' | translate}}
+            </a>
+         </ng-template>
+      </nz-alert>
+   </div>
+   <div class="mb-md">
+      <nz-table
+         #table 
+         [nzData]="dataList"
+         [nzFrontPagination]="false"
+         [nzLoading]="isTableLoading" 
+         [nzTotal]="totalItems"
+         [nzPageSize]="pageSize"
+         [nzPageIndex]="pageIndex"
+         (nzPageIndexChange)="pageNumberChange($event)"
+         (nzPageSizeChange)="pageSizeChange($event)"
+         [nzShowSizeChanger]="true"
+      >
+         <thead>
+            <tr>
+               <th nzShowCheckbox [(nzChecked)]="allChecked" [nzDisabled]="allCheckboxDisabled"
+                  [nzIndeterminate]="checkboxIndeterminate" (nzCheckedChange)="checkAll($event)">
+               </th>
+               <th>
+                  {{'RoleName' | translate}}
+               </th>
+               <th class="text-center">
+                  {{'CreationTime' | translate}}
+               </th>
+               <th nzWidth="230px" class="text-center">
+                  {{'Actions' | translate}}
+               </th>
+            </tr>
+         </thead>
+         <tbody>
+            <tr *ngFor="let item of table.data">
+               <td nzShowCheckbox [(nzChecked)]="item.checked" (nzCheckedChange)="refreshCheckStatus(dataList)"></td>
+               <td>
+                  <span class="mr-sm"> {{item.displayName}}</span>
+                  <nz-tag *ngIf="item.isStatic" [nzColor]="'#108ee9'" nz-tooltip [nzTooltipTitle]="l('StaticRole_Tooltip')">
+                     {{'Static' | translate}}
+                  </nz-tag>
+                  <nz-tag *ngIf="item.isDefault" [nzColor]="'#2db7f5'" nz-tooltip [nzTooltipTitle]="l('DefaultRole_Description')">
+                     {{'Default' | translate}}
+                  </nz-tag>
+               </td>
+               <td class="text-center">
+                  {{item.creationTime | date:'yyyy-MM-dd'}}
+               </td>
+               <td class="text-center">
+                  <ng-container *ngIf="isGranted('Pages.Administration.Roles.Edit')">
+                     <a (click)="edit(modalContent, item)">
+                        <i nz-icon nzType="edit"></i>
+                        {{'Edit' | translate}}
+                     </a>
+                  </ng-container>
+                  <ng-container *ngIf="!item.isStatic&&isGranted('Pages.Administration.Roles.Delete')">
+                     <nz-divider nzType="vertical"></nz-divider>
+                     <a nz-popconfirm [nzPopconfirmTitle]="'RoleDeleteWarningMessage'| translate: {text:item.displayName}"
+                        (nzOnConfirm)="delete(item)" [nzOkText]="l('Ok')" [nzCancelText]="l('Cancel')">
+                        <i nz-icon nzType="delete"></i>
+                        {{'Delete' | translate}}
+                     </a>
+                  </ng-container>
+               </td>
+            </tr>
+         </tbody>
+      </nz-table>
+  </div>
+</nz-card>
+
+
+<!-- 编辑窗口 -->
+<ng-template #modalContent>
+   <nz-tabset [nzAnimated]="false" class="tabs" style="margin-top: -24px;" (nzSelectChange)="switch($event)">
+      <nz-tab [nzTitle]="'Role' | translate">
+         <!-- 展示名称 -->
+         <nz-form-item>
+            <nz-form-label style="text-align: center" nzSm="4" nzFor="displayName" nzRequired>展示名称</nz-form-label>
+            <nz-form-control [nzErrorTip]="displayNameValidationTpl" nzHasFeedback nzSm="20">
+               <input nz-input name="displayName" [(ngModel)]="createOrUpdateDto.role.displayName" [placeholder]="'展示名称'" required autocomplete="off" />
+               <ng-template #displayNameValidationTpl let-control>
+                  <validation-messages [formCtrl]="control"></validation-messages>
+               </ng-template>
+            </nz-form-control>
+         </nz-form-item>
+         <!-- 是否默认 -->
+         <nz-form-item>
+            <label nz-checkbox [(ngModel)]="createOrUpdateDto.role.isDefault">是否默认</label>
+         </nz-form-item>
+      </nz-tab>
+      <nz-tab [nzTitle]="'Permissions' | translate">
+         <ng-template #permissionsTitleTpl>
+            <i nz-icon nzType="safety"></i>
+            {{'Permissions' | translate}}
+         </ng-template>
+         <permission-tree #permissionTree></permission-tree>
+      </nz-tab>
+   </nz-tabset>
+</ng-template>

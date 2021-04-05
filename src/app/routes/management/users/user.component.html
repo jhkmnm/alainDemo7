@@ -1,0 +1,264 @@
+<page-header> </page-header>
+<nz-card [nzBordered]="false">    
+  <!-- 搜索框 -->
+  <form nz-form  (ngSubmit)="refresh()" class="search__form">
+    <div nz-row [nzGutter]="{ xs: 8, sm: 8, md: 8, lg: 24, xl: 48, xxl: 48 }">
+      <div nz-col nzMd="8" nzSm="24">
+        <nz-form-item>
+          <nz-form-label nzFor="filterText">关键字</nz-form-label>
+          <nz-form-control>
+            <input
+              nz-input
+              [(ngModel)]="query.filterText"
+              name="filterText"
+              placeholder="关键字"
+              id="filterText"
+              autocomplete="off"
+            />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      <div nz-col nzMd="8" nzSm="8">
+        <nz-form-item>
+          <nz-form-label nzFor="isActive">{{ 'IsActive' | translate }}</nz-form-label>
+          <nz-form-control>
+            <nz-select [(ngModel)]="query.isActive" name="isActive" id="isActive" [nzPlaceHolder]="l('PleaseSelect')" [nzShowSearch]="true">
+              <nz-option *ngFor="let i of booleanFilterList;" [nzLabel]="i.text" [nzValue]="i.value"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <div nz-col nz-col nzMd="8" nzSm="24">
+        <nz-form-item nzAlign="middle">
+          <nz-button-group>
+            <button nz-button type="submit" [nzType]="'primary'" [nzLoading]="isTableLoading">
+              {{ "Query" | translate }}
+            </button>
+            <button nz-button nzGhost="true" nzType="primary" type="reset" class="mx-sm">
+              {{ "Reset" | translate }}
+            </button>
+          </nz-button-group>
+        </nz-form-item>
+      </div>
+    </div>
+  </form>
+  
+  <button nz-button [nzType]="'primary'" *ngIf="isGranted('Pages.BaseData.Items.Create')"
+    (click)="create(modalContent)">
+    <i nz-icon nzType="plus"></i>
+    <span>
+      {{ "Create" | translate }}
+    </span>
+  </button>
+  <ng-container *ngIf="selectedDataItems.length > 0">
+    <button nz-button [nzType]="'danger'" *ngIf="isGranted('Pages.Administration.Roles.Delete')"
+      (click)="batchDelete()">
+      <i nz-icon nzType="delete"></i>
+      <span>
+        {{ "DeleteSelected" | translate }}
+      </span>
+    </button>
+  </ng-container>
+
+  <div class="my-md">
+    <nz-alert [nzType]="'info'" [nzShowIcon]="true" [nzMessage]="message">
+      <ng-template #message>
+        <span>
+          <strong class="text-primary">{{selectedDataItems.length}}</strong> {{ "items selected" | translate }}
+        </span>
+        <a (click)="restCheckStatus(dataList)" *ngIf="selectedDataItems.length>0" class="ml-md">
+          {{'Clear' | translate}}
+        </a>
+        <nz-divider nzType="vertical"></nz-divider>
+        <a (click)="refresh()">
+          {{'Refresh' | translate}}
+        </a>
+      </ng-template>
+    </nz-alert>
+  </div>
+
+  <!-- 表格 -->
+  <div class="mb-md">
+    <nz-table
+      #table
+      [nzData]="dataList"
+      [nzFrontPagination]="false"
+      [nzLoading]="isTableLoading"
+      [nzTotal]="totalItems"
+      [nzPageSize]="pageSize"
+      [nzPageIndex]="pageIndex"
+      (nzPageIndexChange)="pageNumberChange($event)"
+      (nzPageSizeChange)="pageSizeChange($event)"
+      [nzShowSizeChanger]="true"
+    >      
+      <!-- 表头 -->
+      <thead>
+        <tr>
+          <th
+            nzWidth="60px"
+            nzShowCheckbox
+            [(nzChecked)]="allChecked"
+            [nzDisabled]="allCheckboxDisabled"
+            [nzIndeterminate]="checkboxIndeterminate"
+            (nzCheckedChange)="checkAll($event)"
+          ></th>
+          <th nzWidth="100px">
+            <span>{{ 'UserName' | translate }}</span>
+          </th>
+          <th nzWidth="100px">
+            <span>{{ 'DisplayName' | translate }}</span>
+          </th>        
+          <th nzWidth="100px">
+            <span>{{ 'EmailAddress' | translate }}</span>
+          </th>
+
+          <th nzWidth="100px">
+            <span>{{ 'PhoneNumber' | translate }}</span>
+          </th>
+          <th nzWidth="100px">
+            <span>{{ 'RoleNames' | translate }}</span>
+          </th>        
+          <th nzWidth="100px">
+            <span>{{ 'IsLockoutEnabled' | translate }}</span>
+          </th>
+          <th nzWidth="100px">
+            <span>{{ 'IsActive' | translate }}</span>
+          </th>
+          <th class="text-center" nzWidth="200px">
+            <span>{{ 'LastLoginTime' | translate }}</span>
+          </th>
+          <th class="text-center" nzWidth="200px">
+            <span>{{ 'CreationTime' | translate }}</span>
+          </th>
+          <th nzRight nzWidth="100px">
+            <span>{{ 'Actions' | translate }}</span>
+          </th>
+        </tr>
+      </thead>
+      <!-- 表格内容 -->
+
+      <tbody>
+        <tr *ngFor="let item of table.data">
+          <td nzShowCheckbox [(nzChecked)]="item.checked" (nzCheckedChange)="refreshCheckStatus(dataList)"></td>
+          <td>
+            <span class="mr-sm">{{ item.userName }}</span>
+          </td>
+          <td>
+            <span class="mr-sm">{{ item.displayName }}</span>
+          </td>
+          <td>
+            <span class="mr-sm">{{ item.emailAddress }}</span>
+          </td>
+          <td>
+            <span class="mr-sm">{{ item.phoneNumber }}</span>
+          </td>
+          <td>
+            <span class="mr-sm">{{ item.roleNames }}</span>
+          </td>
+          <td class="text-center" [innerHTML]="item.isLockoutEnabled | yn"></td>
+          <td class="text-center" [innerHTML]="item.isActive | yn"></td>
+          <td class="text-center">
+            <span nz-tooltip [nzTooltipTitle]="item.lastLoginTime | date:'yyyy-MM-dd'"> {{ item.lastLoginTime | date:'yyyy-MM-dd' }}</span>
+          </td>
+          <td class="text-center">
+            <span nz-tooltip [nzTooltipTitle]="item.creationTime | date:'yyyy-MM-dd'"> {{ item.creationTime | date:'yyyy-MM-dd' }}</span>
+          </td>
+          <td class="text-center" nzRight>
+            <!-- 操作 -->
+            <ng-container *ngIf="isGranted('Pages.BaseData.User.Edit') || isGranted('Pages.BaseData.User.Delete')">
+              <ng-container>
+                <a nz-dropdown [nzDropdownMenu]="menu">
+                  {{ 'Action' | translate }}
+                  <i class="iconfont icon-down "></i>
+                </a>
+                <nz-dropdown-menu #menu="nzDropdownMenu">
+                  <ul nz-menu>
+                    <li nz-menu-item *ngIf="isGranted('Pages.BaseData.User.Edit')">
+                      <a (click)="edit(modalContent, item)">
+                        <i class="iconfont icon-edit  mr-sm"></i>
+                        <span>{{ 'Edit' | translate }}</span>
+                      </a>
+                    </li>
+                    <li nz-menu-item *ngIf="isGranted('Pages.BaseData.User.Delete')">
+                      <a
+                        nz-popconfirm
+                        [nzPopconfirmTitle]="l('AreYouSure')"
+                        (nzOnConfirm)="delete(item)"
+                        [nzOkText]="l('YesDelete')"
+                        [nzCancelText]="l('Cancel')"
+                      >
+                        <i class="iconfont icon-delete mr-sm"></i>
+                        <span>{{ 'Delete' | translate }}</span>
+                      </a>
+                    </li>
+                  </ul>
+                </nz-dropdown-menu>
+              </ng-container>
+            </ng-container>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+  </div>
+</nz-card>
+
+<!-- 编辑窗口 -->
+<ng-template #modalContent>
+  <form nz-form [formGroup]="form" (ngSubmit)="submit()" role="form">
+    <!-- 用户名 -->
+    <nz-form-item>
+      <nz-form-label style="text-align: center" nzSm="4" nzFor="userName">用户名</nz-form-label>
+      <nz-form-control nzErrorTip="请输入用户名">
+        <input nz-input formControlName="userName" [(ngModel)]="createOrUpdateDto.user.userName" [placeholder]="'用户名'" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <!-- 用户邮箱 -->
+    <nz-form-item>
+      <nz-form-label style="text-align: center" nzSm="4" nzFor="emailAddress">用户邮箱</nz-form-label>
+      <nz-form-control nzErrorTip="请输入用户邮箱">
+        <input nz-input formControlName="emailAddress" [(ngModel)]="createOrUpdateDto.user.emailAddress" [placeholder]="'用户邮箱'" />        
+      </nz-form-control>
+    </nz-form-item>
+
+    <!-- 用户手机 -->
+    <nz-form-item>
+      <nz-form-label style="text-align: center" nzSm="4" nzFor="phoneNumber" nzRequired>用户手机</nz-form-label>
+      <nz-form-control nzErrorTip="请输入用户手机">
+        <input nz-input formControlName="phoneNumber" [(ngModel)]="createOrUpdateDto.user.phoneNumber" [placeholder]="'用户手机'" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <!-- 密码 -->
+    <nz-form-item>
+      <nz-form-label style="text-align: center" nzSm="4" nzFor="password" nzRequired>密码</nz-form-label>
+      <nz-form-control nzErrorTip="请输入密码">
+        <input nz-input formControlName="password" [(ngModel)]="createOrUpdateDto.user.password" [placeholder]="'密码'" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <!-- 是否锁定 -->
+    <nz-form-item>
+      <label nz-checkbox formControlName="isLockoutEnabled" [(ngModel)]="createOrUpdateDto.user.isLockoutEnabled">是否锁定</label>
+    </nz-form-item>
+
+    <!-- 是否需要修改密码 -->
+    <nz-form-item>
+      <label nz-checkbox formControlName="needToChangeThePassword" [(ngModel)]="createOrUpdateDto.user.needToChangeThePassword">是否需要修改密码</label>
+    </nz-form-item>
+
+    <!-- 头像ID -->
+    <nz-form-item>
+      <nz-form-label style="text-align: center" nzSm="4" nzFor="profilePictureId" nzRequired>头像ID</nz-form-label>
+      <nz-form-control nzErrorTip="displayNameValidationTpl">
+        <input nz-input formControlName="profilePictureId" [(ngModel)]="createOrUpdateDto.user.profilePictureId" [placeholder]="'头像ID'" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <!-- 是否有效 -->
+    <nz-form-item>
+      <label nz-checkbox formControlName="isActive" [(ngModel)]="createOrUpdateDto.user.isActive">是否激活</label>
+    </nz-form-item>
+  </form>  
+</ng-template>

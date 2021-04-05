@@ -1,0 +1,20 @@
+<nz-spin [nzTip]="l('LoadWithThreeDot')" [nzSpinning]="loading">
+   <nz-input-group [nzSuffix]="suffixIcon">
+       <input type="text" nz-input placeholder="{{'SearchWithThreeDot' | translate}}" [(ngModel)]="filterText"
+           (ngModelChange)="searchValue$.next($event)" />
+   </nz-input-group>
+   <ng-template #suffixIcon>
+       <i nz-icon nzType="reload" class="point" (click)="reload()" nz-tooltip [nzTooltipTitle]="l('Refresh')"></i>
+   </ng-template>
+
+   <nz-tree 
+      #nzTreePermission 
+      [nzData]="_treeData"
+      nzCheckable
+      [nzCheckedKeys]="defaultCheckedPermissionNames"
+      [nzSearchValue]="filterText" 
+      [nzShowLine]="false"
+      nzVirtualHeight="360px"
+      [nzExpandAll]="true" [nzCheckStrictly]="checkStrictly" class="mt-md">
+   </nz-tree>
+</nz-spin>
