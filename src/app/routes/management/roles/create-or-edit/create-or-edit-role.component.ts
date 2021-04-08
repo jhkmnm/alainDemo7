@@ -1,5 +1,7 @@
-import { Component, Injector, OnInit } from '@angular/core';
+import { Component, Injector, OnInit, ViewChild } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { SFComponent, SFSchema, SFUISchema } from '@delon/form';
+import { AppComponentBase } from '@shared/common/app-component-base';
 import { ModalComponentBase } from '@shared/common/modal-component-base';
 import { CreateOrUpdateRoleInput, RoleEditDto, RoleServiceProxy } from '@shared/service-proxies/service-proxies';
 import { NzMessageService } from 'ng-zorro-antd/message';
@@ -10,44 +12,64 @@ import { finalize } from 'rxjs/operators';
   templateUrl: './create-or-edit-role.component.html',
 })
 export class CreateOrEditRoleComponent extends ModalComponentBase implements OnInit {
+  @ViewChild('sf', { static: false }) sf: SFComponent;
+  record: any = {};
+  schema: SFSchema = {
+    properties: {
+      displayName: { type: 'string', title: this.l('名称'), maxLength: 50 },
+      isDefault: { type: 'boolean', title: this.l('默认') },
+    },
+    required: ['displayName'],
+  };
+  ui: SFUISchema = {
+    '*': {
+      spanLabelFixed: 100,
+      grid: { span: 24 },
+    },
+    $displayName: {
+      widget: 'string',
+    },
+  };
+
   constructor(
     injector: Injector,
-    fb: FormBuilder,
+    // fb: FormBuilder,
     private _roleService: RoleServiceProxy,
-    private msg: NzMessageService) {
+    private msg: NzMessageService,
+  ) {
     super(injector);
-    this.form = fb.group({
-      name: [null, [Validators.required]],
-      displayName: [null, [Validators.required]],
-      normalizedName: [null, [Validators.required]],
-      isDefault: [true]
-    });
+    // this.form = fb.group({
+    //   name: [null, [Validators.required]],
+    //   displayName: [null, [Validators.required]],
+    //   normalizedName: [null, [Validators.required]],
+    //   isDefault: [true]
+    // });
   }
 
-  get name(): AbstractControl {
-    return this.form.controls.name;
-  }
+  // get name(): AbstractControl {
+  //   return this.form.controls.name;
+  // }
 
-  get displayName(): AbstractControl {
-    return this.form.controls.displayName;
-  }
-  get normalizedName(): AbstractControl {
-    return this.form.controls.normalizedName;
-  }
+  // get displayName(): AbstractControl {
+  //   return this.form.controls.displayName;
+  // }
+  // get normalizedName(): AbstractControl {
+  //   return this.form.controls.normalizedName;
+  // }
 
-  inputInvalid(): boolean {
-    this.name.markAsDirty();
-    this.name.updateValueAndValidity();
-    if (
-      this.name.invalid
-    ) {
-      return false;
-    }
-    return true;
-  }
-  /**
-   * 编辑时Id
-   */
+  // inputInvalid(): boolean {
+  //   this.name.markAsDirty();
+  //   this.name.updateValueAndValidity();
+  //   if (
+  //     this.name.invalid
+  //   ) {
+  //     return false;
+  //   }
+  //   return true;
+  // }
+  // /**
+  //  * 编辑时Id
+  //  */
   id?: number;
   saving = false;
   editDto: RoleEditDto = new RoleEditDto();
@@ -61,12 +83,11 @@ export class CreateOrEditRoleComponent extends ModalComponentBase implements OnI
       this.editName = result.role.displayName;
     });
   }
-  save() {
-    if (!this.inputInvalid()) return;
-    this.saving = true;
 
+  save() {
+    this.saving = true;
     const updateInput = new CreateOrUpdateRoleInput();
-    updateInput.role = this.editDto;
+    updateInput.role = RoleEditDto.fromJS(this.sf.value);
 
     this._roleService
       .createOrUpdate(updateInput)
