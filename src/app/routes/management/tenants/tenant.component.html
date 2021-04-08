@@ -1,0 +1,25 @@
+<page-header [action]="phActionTpl">
+  <!-- <ng-template #phActionTpl>
+     <button (click)="add()" nz-button nzType="primary">新建</button>
+   </ng-template> -->
+</page-header>
+<nz-card>
+  <sf mode="search" [schema]="searchSchema" (formSubmit)="doSearch($event)" (formReset)="st.reset($event)"></sf>
+  <button (click)="add()" nz-button nzType="primary">新建</button>
+  <button nz-button [nzType]="'primary'" *ngIf="isGranted('Pages.BaseData.Items.Create')" (click)="create(modalContent)">
+    <i nz-icon nzType="plus"></i>
+    <span>
+      {{ 'Create' | translate }}
+    </span>
+  </button>
+  <st
+    #st
+    [data]="dataList"
+    [columns]="columns"
+    [pi]="pageNumber"
+    [ps]="pageSize"
+    [total]="totalItems"
+    (change)="pageNumberChange($event)"
+    (nzCheckedChange)="checkAll($event)"
+  ></st>
+</nz-card>
