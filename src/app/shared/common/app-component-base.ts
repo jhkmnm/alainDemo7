@@ -1,67 +1,70 @@
 import { Injector } from '@angular/core';
 import { I18NService } from '@core';
 import { ACLService } from '@delon/acl';
+import { ModalHelper } from '@delon/theme';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
 
 export abstract class AppComponentBase {
-    localization: I18NService;
-    acl: ACLService;
-    message: NzMessageService;
-    modal: NzModalService
+  localization: I18NService;
+  acl: ACLService;
+  msgSrv: NzMessageService;
+  modalHelper: ModalHelper;
+  modalSrv: NzModalService;
 
-    constructor(injector: Injector) {
-        this.localization = injector.get(I18NService);
-        this.acl = injector.get(ACLService);
-        this.message = injector.get(NzMessageService);
-        this.modal = injector.get(NzModalService);
+  constructor(injector: Injector) {
+    this.localization = injector.get(I18NService);
+    this.acl = injector.get(ACLService);
+    this.msgSrv = injector.get(NzMessageService);
+    this.modalHelper = injector.get(ModalHelper);
+    this.modalSrv = injector.get(NzModalService);
+  }
+
+  l(key: string, ...args: any[]): string {
+    let localizedText = this.localization.fanyi(key);
+
+    if (!localizedText) {
+      localizedText = key;
     }
 
-    l(key: string, ...args: any[]): string {
-        let localizedText = this.localization.fanyi(key);
-
-        if (!localizedText) {
-            localizedText = key;
-        }
-
-        if (!args || !args.length || args.length == 0) {
-            return localizedText;
-        }
-
-        args.unshift(localizedText);
-        return this.formatString.apply(this, args);
+    if (!args || !args.length || args.length == 0) {
+      return localizedText;
     }
 
-    formatString = function () {
-        if (arguments.length < 1) {
-            return null;
-        }
+    args.unshift(localizedText);
+    return this.formatString.apply(this, args);
+  }
 
-        var str = arguments[0];
+  formatString = function () {
+    if (arguments.length < 1) {
+      return null;
+    }
 
-        for (var i = 1; i < arguments.length; i++) {
-            var placeHolder = '{' + (i - 1) + '}';
-            str = this.replaceAll(str, placeHolder, arguments[i]);
-        }
+    var str = arguments[0];
 
-        return str;
-    };
+    for (var i = 1; i < arguments.length; i++) {
+      var placeHolder = '{' + (i - 1) + '}';
+      str = this.replaceAll(str, placeHolder, arguments[i]);
+    }
 
-    replaceAll = function (str, search, replacement) {
-        var fix = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        return str.replace(new RegExp(fix, 'g'), replacement);
-    };
+    return str;
+  };
 
-    isGranted(permissionName: string): boolean {
-        return this.acl.canAbility(permissionName);
-    };
+  replaceAll = function (str, search, replacement) {
+    var fix = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return str.replace(new RegExp(fix, 'g'), replacement);
+  };
 
-    getMappingValueArrayOfkey = function (array, keyName) {
-        if (Object.prototype.toString.call(array) == '[object Array]') {
-            return array.map((item, index) => {
-                return item[keyName];
-            });
-        }
-        return null;
-    };
+  isGranted(permissionName: string): boolean {
+    return this.acl.canAbility(permissionName);
+  }
+
+  getMappingValueArrayOfkey = function (array, keyName) {
+    if (Object.prototype.toString.call(array) == '[object Array]') {
+      return array.map((item, index) => {
+        return item[keyName];
+      });
+    }
+    return null;
+  };
 }

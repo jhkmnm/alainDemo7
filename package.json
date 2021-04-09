@@ -66,6 +66,7 @@
     "ng-zorro-antd": "~11.2.0",
     "ngx-tinymce": "^11.0.0",
     "ngx-ueditor": "^11.0.0",
+    "nswag": "^13.10.8",
     "rxjs": "~6.6.0",
     "screenfull": "^5.1.0",
     "tslib": "^2.0.0",

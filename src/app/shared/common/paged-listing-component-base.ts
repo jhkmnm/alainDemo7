@@ -1,4 +1,5 @@
 import { Directive, Injector, OnInit } from '@angular/core';
+import { STChange } from '@delon/abc/st';
 import { AppComponentBase } from './app-component-base';
 
 export class EntityDto {
@@ -46,6 +47,18 @@ export abstract class PagedListingComponentBase<TEntityDto> extends AppComponent
     this.getDataPage(this.pageIndex);
   }
 
+  public change(ret: STChange) {
+    if (ret.type === 'checkbox') {
+      debugger;
+      console.log('checkbox');
+      this.refreshCheckStatus(this.dataList);
+    } else if (ret.type === 'pi') {
+      this.pageNumberChange(ret.pi);
+    } else if (ret.type === 'ps') {
+      this.pageSizeChange(ret.ps);
+    }
+  }
+
   public getDataPage(page: number): void {
     const req = new PagedRequestDto();
     req.maxResultCount = this.pageSize;
@@ -58,6 +71,7 @@ export abstract class PagedListingComponentBase<TEntityDto> extends AppComponent
     });
   }
 
+  // 是否全选
   refreshAllCheckBoxDisabled(): void {
     this.allCheckboxDisabled = this.dataList.length <= 0;
   }
@@ -76,12 +90,13 @@ export abstract class PagedListingComponentBase<TEntityDto> extends AppComponent
     this.getDataPage(this.pageIndex);
   }
 
+  // 全选
   checkAll(value: boolean): void {
-    debugger;
     this.dataList.forEach((data) => ((<any>data).checked = this.allChecked));
     this.refreshCheckStatus(this.dataList);
   }
 
+  // 刷新选中状态
   refreshCheckStatus(entityList: any[]): void {
     // 是否全部选中
     const allChecked = entityList.every((value) => value.checked === true);

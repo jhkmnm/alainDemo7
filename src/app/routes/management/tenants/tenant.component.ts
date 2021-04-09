@@ -2,8 +2,10 @@ import { Component, Injector, OnInit, ViewChild } from '@angular/core';
 import { STColumn, STComponent, STData } from '@delon/abc/st';
 import { SFSchema } from '@delon/form';
 import { PagedListingComponentBase, PagedRequestDto } from '@shared/common/paged-listing-component-base';
-import { TenantListDto, TenantServiceProxy } from '@shared/service-proxies/service-proxies';
+import { RoleServiceProxy, TenantListDto, TenantServiceProxy } from '@shared/service-proxies/service-proxies';
 import { finalize } from 'rxjs/operators';
+import { CreateRoleComponent } from './create/create.component';
+import { EditRoleComponent } from './edit/edit.component';
 
 @Component({
   selector: 'app-tenants',
@@ -22,9 +24,9 @@ export class TenantComponent extends PagedListingComponentBase<TenantListDto> im
   @ViewChild('st', { static: true }) st: STComponent;
   columns: STColumn[] = [
     { type: 'checkbox' },
-    { title: '租户编码', index: 'tenancyName' },
-    { title: '名称', index: 'name' },
-    { title: '是否激活', type: 'yn', index: 'isActive' },
+    { title: this.l('RoleName'), index: 'displayName' },
+    { title: this.l('CreationTime'), type: 'date', dateFormat: 'yyyy-MM-dd', index: 'creationTime' },
+    { title: this.l('IsDefault'), type: 'yn', index: 'isDefault' },
     {
       title: '操作',
       buttons: [
@@ -33,7 +35,7 @@ export class TenantComponent extends PagedListingComponentBase<TenantListDto> im
           icon: 'edit',
           type: 'modal',
           modal: {
-            // component: ,
+            component: EditRoleComponent,
           },
           params: (record: STData) => {
             return { record };
@@ -57,18 +59,17 @@ export class TenantComponent extends PagedListingComponentBase<TenantListDto> im
     },
   ];
 
-  constructor(injector: Injector, private _tenantService: TenantServiceProxy) {
+  constructor(injector: Injector, private _tenantService: TenantServiceProxy, private _roleService: RoleServiceProxy) {
     super(injector);
   }
 
   ngOnInit() {
     super.ngOnInit();
-    this.st.page.front = false;
   }
 
   protected list(request: PagedRequestDto, finishedCallback: () => void): void {
-    this._tenantService
-      .getPaged(null, null, null, null, null, this.filterText, request.sorting, request.maxResultCount, request.skipCount)
+    this._roleService
+      .getPaged(null, this.filterText, null, request.maxResultCount, request.skipCount)
       .pipe(finalize(finishedCallback))
       .subscribe((result) => {
         this.dataList = result.items;
@@ -76,10 +77,17 @@ export class TenantComponent extends PagedListingComponentBase<TenantListDto> im
       });
   }
 
+  create() {
+    this.modalHelper.createStatic(CreateRoleComponent, { i: { id: 0 } }).subscribe((res) => {
+      if (res === true) {
+        this.refresh();
+      }
+    });
+  }
+
   delete(record: STData, modal?: any, instance?: STComponent) {
-    this._tenantService.delete(record.id).subscribe(() => {
-      this.message.success('删除租户成功');
-      this.message.create('success', '删除租户成功');
+    this._roleService.delete(record.id).subscribe(() => {
+      this.msgSrv.success('删除租户成功');
       this.refresh();
     });
   }
