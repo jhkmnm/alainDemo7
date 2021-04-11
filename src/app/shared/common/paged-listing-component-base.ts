@@ -49,8 +49,6 @@ export abstract class PagedListingComponentBase<TEntityDto> extends AppComponent
 
   public change(ret: STChange) {
     if (ret.type === 'checkbox') {
-      debugger;
-      console.log('checkbox');
       this.refreshCheckStatus(this.dataList);
     } else if (ret.type === 'pi') {
       this.pageNumberChange(ret.pi);

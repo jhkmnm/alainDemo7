@@ -1,6 +1,9 @@
 {
   "/api": {
-    "target": "http://localhost:8080/api/services",
+    "target": "http://localhost:7299",
     "secure": false
+  },
+  "/AbpUserConfiguration": {
+    "target": "http://localhost:7299"
   }
 }

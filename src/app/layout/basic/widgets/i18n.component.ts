@@ -2,8 +2,10 @@ import { DOCUMENT } from '@angular/common';
 import { ChangeDetectionStrategy, Component, Inject, Input } from '@angular/core';
 import { ALAIN_I18N_TOKEN, SettingsService } from '@delon/theme';
 import { BooleanInput, InputBoolean } from '@delon/util/decorator';
+import { LanguageServiceProxy, SetDefaultLanguageInput } from '@shared/service-proxies/service-proxies';
 
 import { I18NService } from '@core';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'header-i18n',
@@ -38,7 +40,12 @@ export class HeaderI18nComponent {
     return this.settings.layout.lang;
   }
 
-  constructor(private settings: SettingsService, @Inject(ALAIN_I18N_TOKEN) private i18n: I18NService, @Inject(DOCUMENT) private doc: any) {}
+  constructor(
+    private settings: SettingsService,
+    @Inject(ALAIN_I18N_TOKEN) private i18n: I18NService,
+    @Inject(DOCUMENT) private doc: any,
+    private _languageService: LanguageServiceProxy,
+  ) {}
 
   change(lang: string): void {
     const spinEl = this.doc.createElement('div');
@@ -48,6 +55,12 @@ export class HeaderI18nComponent {
 
     this.i18n.use(lang);
     this.settings.setLayout('lang', lang);
+    const lan = new SetDefaultLanguageInput();
+    lan.name = lang;
+    this._languageService
+      .setDefaultLanguage(lan)
+      .pipe(finalize(() => {}))
+      .subscribe((res) => {});
     setTimeout(() => this.doc.location.reload());
   }
 }

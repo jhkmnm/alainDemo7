@@ -31,6 +31,7 @@ import { NzTreeModule } from 'ng-zorro-antd/tree';
 // #endregion
 import { AppComponent } from './app.component';
 import { CoreModule } from './core/core.module';
+import { AbpHttpConfiguration } from './core/net/abpinterceptor';
 import { GlobalConfigModule } from './global-config.module';
 import { LayoutModule } from './layout/layout.module';
 import { RoutesModule } from './routes/routes.module';
@@ -115,7 +116,14 @@ export function getRemoteServiceBaseUrl(): string {
     ...GLOBAL_THIRD_MODULES,
     ...FORM_MODULES,
   ],
-  providers: [...LANG_PROVIDES, ...INTERCEPTOR_PROVIDES, ...I18NSERVICE_PROVIDES, ...APPINIT_PROVIDES, ...APIBASEURL_PROVIDES],
+  providers: [
+    ...LANG_PROVIDES,
+    ...INTERCEPTOR_PROVIDES,
+    ...I18NSERVICE_PROVIDES,
+    ...APPINIT_PROVIDES,
+    ...APIBASEURL_PROVIDES,
+    AbpHttpConfiguration,
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

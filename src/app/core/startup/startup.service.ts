@@ -57,7 +57,9 @@ export class StartupService {
           }),
         )
         .subscribe(
-          ([serviceData]) => {
+          ([serviceResult]) => {
+            debugger;
+            let serviceData = serviceResult.result;
             // 设置语言
             let langData = {};
             let localization = serviceData.localization;

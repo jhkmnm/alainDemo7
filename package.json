@@ -23,7 +23,7 @@
   "scripts": {
     "ng-high-memory": "node --max_old_space_size=8000 ./node_modules/@angular/cli/bin/ng",
     "ng": "ng",
-    "start": "ng s -o",
+    "start": "ng s --proxy-config proxy.config.json",
     "hmr": "ng s -o --hmr",
     "build": "npm run ng-high-memory build -- --prod",
     "analyze": "npm run ng-high-memory build -- --prod --source-map",
@@ -66,7 +66,7 @@
     "ng-zorro-antd": "~11.2.0",
     "ngx-tinymce": "^11.0.0",
     "ngx-ueditor": "^11.0.0",
-    "nswag": "^13.10.8",
+    "nswag": "^13.10.9",
     "rxjs": "~6.6.0",
     "screenfull": "^5.1.0",
     "tslib": "^2.0.0",
