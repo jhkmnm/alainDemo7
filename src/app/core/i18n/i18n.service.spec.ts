@@ -6,7 +6,6 @@ import { NzI18nService } from 'ng-zorro-antd/i18n';
 import { of } from 'rxjs';
 import { I18NService } from './i18n.service';
 
-
 describe('Service: I18n', () => {
   let injector: TestBedStatic;
   let srv: I18NService;
@@ -16,16 +15,16 @@ describe('Service: I18n', () => {
     },
   };
   const MockNzI18nService = {
-    setLocale: () => { },
-    setDateLocale: () => { },
+    setLocale: () => {},
+    setDateLocale: () => {},
   };
   const MockDelonLocaleService = {
-    setLocale: () => { },
+    setLocale: () => {},
   };
   const MockTranslateService = {
     getBrowserLang: jasmine.createSpy('getBrowserLang'),
-    addLangs: () => { },
-    setLocale: () => { },
+    addLangs: () => {},
+    setLocale: () => {},
     getDefaultLang: () => '',
     use: (lang: string) => of(lang),
     instant: jasmine.createSpy('instant'),
@@ -56,11 +55,11 @@ describe('Service: I18n', () => {
   });
 
   it('should be used layout as default language', () => {
-    MockSettingsService.layout.lang = 'en-US';
+    MockSettingsService.layout.lang = 'en';
     const navSpy = spyOnProperty(navigator, 'languages');
     genModule();
     expect(navSpy).not.toHaveBeenCalled();
-    expect(srv.defaultLang).toBe('en-US');
+    expect(srv.defaultLang).toBe('en');
     MockSettingsService.layout.lang = null;
   });
 
@@ -72,9 +71,9 @@ describe('Service: I18n', () => {
 
   it('should be trigger notify when changed language', () => {
     genModule();
-    srv.use('en-US');
+    srv.use('en');
     srv.change.subscribe((lang) => {
-      expect(lang).toBe('en-US');
+      expect(lang).toBe('en');
     });
   });
 });

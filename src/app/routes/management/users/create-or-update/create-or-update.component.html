@@ -1,0 +1,50 @@
+<form nz-form #validateForm="ngForm" (ngSubmit)="save()" *ngIf="user">
+  <div class="modal-header">
+    <div *ngIf="!id" class="modal-title">创建用户</div>
+    <div *ngIf="id" class="modal-title">编辑用户</div>
+  </div>
+
+  <nz-tabset>
+    <nz-tab [nzTitle]="'UserDetails' | translate">
+      <div se-container="1" labelWidth="150">
+        <se label="{{ 'UserName' | translate }}" error="{{ '用户名不能为空' | translate }}" required>
+          <input nz-input [(ngModel)]="user.userName" name="userName" maxlength="128" type="text" required />
+        </se>
+        <se label="{{ 'DisplayName' | translate }}" error="{{ '显示名称不能为空' | translate }}" required>
+          <input nz-input [(ngModel)]="user.displayName" name="displayName" type="text" maxlength="32" required />
+        </se>
+        <se label="{{ 'EmailAddress' | translate }}" error="{{ '填写有效的邮箱地址' | translate }}" required>
+          <input
+            nz-input
+            [(ngModel)]="user.emailAddress"
+            name="emailAddress"
+            type="email"
+            pattern="^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$"
+            maxlength="256"
+            required
+          />
+        </se>
+        <se label="{{ 'PhoneNumber' | translate }}" error="{{ '填写有效的手机号码' | translate }}" required>
+          <input nz-input [(ngModel)]="user.phoneNumber" name="phoneNumber" type="mobile" pattern="^1\d{10}$" required />
+        </se>
+        <se label="{{ 'Password' | translate }}" error="{{ '密码不能为空' | translate }}" required>
+          <input nz-input [(ngModel)]="user.password" name="password" type="mobile" maxlength="11" required />
+        </se>
+        <se label="{{ 'IsActive' | translate }}">
+          <nz-switch [(ngModel)]="user.isActive" name="isActive"></nz-switch>
+        </se>
+      </div>
+    </nz-tab>
+
+    <nz-tab [nzTitle]="'Role' | translate">
+      <div class="pt-md pr-md pl-md">
+        <nz-checkbox-group name="roles" [(ngModel)]="roleList"></nz-checkbox-group>
+      </div>
+    </nz-tab>
+  </nz-tabset>
+
+  <div class="modal-footer">
+    <button nz-button type="button" [disabled]="saving" (click)="close()">{{ 'Cancel' | translate }}</button>
+    <button nz-button [nzType]="'primary'" type="submit" [disabled]="!validateForm.valid || saving">{{ 'Save' | translate }}</button>
+  </div>
+</form>

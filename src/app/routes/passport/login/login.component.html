@@ -3,14 +3,32 @@
   <nz-form-item>
     <nz-form-control nzErrorTip="'PleaseEnterLoginInformation | translate'">
       <nz-input-group nzSize="large" nzPrefixIcon="user">
-        <input nz-input formControlName="userName" placeholder="{{ 'UserNameOrEmail' | translate }}" [(ngModel)]="loginModel.userNameOrEmailAddress" />
+        <input nz-input formControlName="tenancyName" placeholder="企业编码" [(ngModel)]="tenant.tenancyName" />
+      </nz-input-group>
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item>
+    <nz-form-control nzErrorTip="'PleaseEnterLoginInformation | translate'">
+      <nz-input-group nzSize="large" nzPrefixIcon="user">
+        <input
+          nz-input
+          formControlName="userName"
+          placeholder="{{ 'UserNameOrEmail' | translate }}"
+          [(ngModel)]="loginModel.userNameOrEmailAddress"
+        />
       </nz-input-group>
     </nz-form-control>
   </nz-form-item>
   <nz-form-item>
     <nz-form-control nzErrorTip="'PleaseEnterLoginInformation | translate'">
       <nz-input-group nzSize="large" nzPrefixIcon="lock">
-        <input nz-input type="password" formControlName="password" placeholder="{{ 'Password' | translate }}" [(ngModel)]="loginModel.password" />
+        <input
+          nz-input
+          type="password"
+          formControlName="password"
+          placeholder="{{ 'Password' | translate }}"
+          [(ngModel)]="loginModel.password"
+        />
       </nz-input-group>
     </nz-form-control>
   </nz-form-item>

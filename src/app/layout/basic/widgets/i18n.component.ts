@@ -6,6 +6,7 @@ import { LanguageServiceProxy, SetDefaultLanguageInput } from '@shared/service-p
 
 import { I18NService } from '@core';
 import { finalize } from 'rxjs/operators';
+import { CookieService } from '@delon/util';
 
 @Component({
   selector: 'header-i18n',
@@ -45,6 +46,7 @@ export class HeaderI18nComponent {
     @Inject(ALAIN_I18N_TOKEN) private i18n: I18NService,
     @Inject(DOCUMENT) private doc: any,
     private _languageService: LanguageServiceProxy,
+    private cooke: CookieService,
   ) {}
 
   change(lang: string): void {
@@ -53,14 +55,16 @@ export class HeaderI18nComponent {
     spinEl.innerHTML = `<span class="ant-spin-dot ant-spin-dot-spin"><i></i><i></i><i></i><i></i></span>`;
     this.doc.body.appendChild(spinEl);
 
-    this.i18n.use(lang);
+    // this.i18n.use(lang);
     this.settings.setLayout('lang', lang);
     const lan = new SetDefaultLanguageInput();
     lan.name = lang;
+    this.cooke.put('Abp.Localization.CultureName', lang);
     this._languageService
       .setDefaultLanguage(lan)
       .pipe(finalize(() => {}))
-      .subscribe((res) => {});
-    setTimeout(() => this.doc.location.reload());
+      .subscribe((res) => {
+        setTimeout(() => this.doc.location.reload());
+      });
   }
 }

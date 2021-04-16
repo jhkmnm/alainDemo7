@@ -46,7 +46,7 @@ export class StartupService {
       zip(
         // this.httpClient.get(`assets/tmp/i18n/${this.i18n.defaultLang}.json`),
         // this.httpClient.get('assets/tmp/app-data.json'),
-        this.httpClient.get('http://localhost:7299/AbpUserConfiguration/GetAll', options_),
+        this.httpClient.get('/AbpUserConfiguration/GetAll', options_),
       )
         .pipe(
           // 接收其他拦截器后产生的异常消息
@@ -58,7 +58,6 @@ export class StartupService {
         )
         .subscribe(
           ([serviceResult]) => {
-            debugger;
             let serviceData = serviceResult.result;
             // 设置语言
             let langData = {};

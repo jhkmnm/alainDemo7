@@ -11,7 +11,7 @@ import {
   en_US as delonEnUS,
   SettingsService,
   zh_CN as delonZhCn,
-  zh_TW as delonZhTw
+  zh_TW as delonZhTw,
 } from '@delon/theme';
 import { TranslateService } from '@ngx-translate/core';
 import { enUS as dfEn, zhCN as dfZhCn, zhTW as dfZhTw } from 'date-fns/locale';
@@ -47,7 +47,7 @@ const LANGS: { [key: string]: LangData } = {
     delon: delonZhTw,
     abbr: '🇭🇰',
   },
-  'en-US': {
+  en: {
     text: 'English',
     ng: ngEn,
     zorro: zorroEnUS,

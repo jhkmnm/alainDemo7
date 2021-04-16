@@ -1,32 +1,41 @@
 import { Component, Injector, OnInit, ViewChild } from '@angular/core';
 import { STColumn, STComponent, STData } from '@delon/abc/st';
 import { SFSchema } from '@delon/form';
-import { PagedListingComponentBase, PagedRequestDto } from '@shared/common/paged-listing-component-base';
-import { RoleServiceProxy, TenantListDto, TenantServiceProxy } from '@shared/service-proxies/service-proxies';
+import { TenantServiceProxy, TenantListDtoPagedResultDto } from '@shared/service-proxies/service-proxies';
+import { PagedListingComponentBase, PagedRequestDto, PagedResultDto } from '@shared/common/paged-listing-component-base';
+import { Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
-import { CreateRoleComponent } from './create/create.component';
-import { EditRoleComponent } from './edit/edit.component';
+import { CreateOrUpdateTenantComponent } from './create-or-update/create-or-update.component';
+
+class PagedTenantsRequestDto extends PagedRequestDto {
+  keyword: string;
+  subscriptionStart: Date | null;
+  subscriptionEnd: Date | null;
+  creationDateStart: Date | null;
+  creationDateEnd: Date | null;
+  editionId: number | null;
+}
 
 @Component({
   selector: 'app-tenants',
   templateUrl: './tenant.component.html',
 })
-export class TenantComponent extends PagedListingComponentBase<TenantListDto> implements OnInit {
+/**
+ * 租户
+ */
+export class TenantComponent extends PagedListingComponentBase<TenantListDtoPagedResultDto> implements OnInit {
+  // 查询
   searchSchema: SFSchema = {
-    properties: {
-      name: {
-        type: 'string',
-        title: '租户编码',
-      },
-    },
+    properties: {},
   };
+
+  searchInput: any = {};
 
   @ViewChild('st', { static: true }) st: STComponent;
   columns: STColumn[] = [
     { type: 'checkbox' },
-    { title: this.l('RoleName'), index: 'displayName' },
-    { title: this.l('CreationTime'), type: 'date', dateFormat: 'yyyy-MM-dd', index: 'creationTime' },
-    { title: this.l('IsDefault'), type: 'yn', index: 'isDefault' },
+    { title: '租户编码', index: 'tenancyName' },
+    { title: '租户名称', index: 'name' },
     {
       title: '操作',
       buttons: [
@@ -35,7 +44,7 @@ export class TenantComponent extends PagedListingComponentBase<TenantListDto> im
           icon: 'edit',
           type: 'modal',
           modal: {
-            component: EditRoleComponent,
+            component: CreateOrUpdateTenantComponent,
           },
           params: (record: STData) => {
             return { record };
@@ -59,7 +68,7 @@ export class TenantComponent extends PagedListingComponentBase<TenantListDto> im
     },
   ];
 
-  constructor(injector: Injector, private _tenantService: TenantServiceProxy, private _roleService: RoleServiceProxy) {
+  constructor(injector: Injector, private _tenantService: TenantServiceProxy) {
     super(injector);
   }
 
@@ -67,18 +76,22 @@ export class TenantComponent extends PagedListingComponentBase<TenantListDto> im
     super.ngOnInit();
   }
 
-  protected list(request: PagedRequestDto, finishedCallback: () => void): void {
-    this._roleService
-      .getPaged(null, this.filterText, null, request.maxResultCount, request.skipCount)
-      .pipe(finalize(finishedCallback))
-      .subscribe((result) => {
-        this.dataList = result.items;
-        this.totalItems = result.totalCount;
-      });
+  protected list(request: PagedTenantsRequestDto): Observable<PagedResultDto> {
+    return this._tenantService.getPaged(
+      request.subscriptionStart,
+      request.subscriptionEnd,
+      request.creationDateStart,
+      request.creationDateEnd,
+      request.editionId,
+      null,
+      request.sorting,
+      request.maxResultCount,
+      request.skipCount,
+    );
   }
 
   create() {
-    this.modalHelper.createStatic(CreateRoleComponent, { i: { id: 0 } }).subscribe((res) => {
+    this.modalHelper.createStatic(CreateOrUpdateTenantComponent, { i: { id: 0 } }).subscribe((res) => {
       if (res === true) {
         this.refresh();
       }
@@ -86,14 +99,13 @@ export class TenantComponent extends PagedListingComponentBase<TenantListDto> im
   }
 
   delete(record: STData, modal?: any, instance?: STComponent) {
-    this._roleService.delete(record.id).subscribe(() => {
+    this._tenantService.delete(record.id).subscribe(() => {
       this.msgSrv.success('删除租户成功');
       this.refresh();
     });
   }
 
   doSearch(val: any) {
-    this.filterText = val.name;
     this.getDataPage(1);
   }
 }

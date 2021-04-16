@@ -6,6 +6,9 @@ import { environment } from '@env/environment';
 import { mergeMap } from 'rxjs/operators';
 import { mergeMap as _observableMergeMap, catchError as _observableCatch } from 'rxjs/operators';
 import { DA_SERVICE_TOKEN, ITokenService } from '@delon/auth';
+import { UtilsService } from './utils.service';
+import { CookieService } from '@delon/util';
+import { Router } from '@angular/router';
 
 export interface IValidationErrorInfo {
   message: string;
@@ -30,7 +33,11 @@ export interface IAjaxResponse {
 
 @Injectable()
 export class AbpHttpConfiguration {
-  constructor(private _messageService: NzMessageService) {}
+  constructor(
+    private _messageService: NzMessageService,
+    private router: Router,
+    @Inject(DA_SERVICE_TOKEN) private tokenService: ITokenService,
+  ) {}
 
   defaultError = <IErrorInfo>{
     message: 'An error has occurred!',
@@ -52,10 +59,6 @@ export class AbpHttpConfiguration {
     details: 'The resource requested could not be found on the server.',
   };
 
-  logError(error: IErrorInfo): void {
-    // this._logService.error(error);
-  }
-
   showError(error: IErrorInfo): any {
     debugger;
     if (error.details) {
@@ -74,15 +77,18 @@ export class AbpHttpConfiguration {
   }
 
   handleUnAuthorizedRequest(messagePromise: any, targetUrl?: string) {
-    const self = this;
+    this.tokenService.clear();
+    this.router.navigateByUrl(this.tokenService.login_url!);
 
-    if (messagePromise) {
-      messagePromise.done(() => {
-        this.handleTargetUrl(targetUrl || '/');
-      });
-    } else {
-      self.handleTargetUrl(targetUrl || '/');
-    }
+    // const self = this;
+
+    // if (messagePromise) {
+    //    messagePromise.done(() => {
+    //       this.handleTargetUrl(targetUrl || '/');
+    //    });
+    // } else {
+    //    self.handleTargetUrl(targetUrl || '/');
+    // }
   }
 
   handleNonAbpErrorResponse(response: HttpResponse<any>) {
@@ -124,7 +130,6 @@ export class AbpHttpConfiguration {
         ajaxResponse.error = this.defaultError;
       }
 
-      this.logError(ajaxResponse.error);
       this.showError(ajaxResponse.error);
 
       if (response.status === 401) {
@@ -189,9 +194,13 @@ export class AbpHttpConfiguration {
 export class AbpHttpInterceptor implements HttpInterceptor {
   protected configuration: AbpHttpConfiguration;
   // @Inject(DA_SERVICE_TOKEN) private _tokenService: ITokenService;
-  // private _utilsService: UtilsService = new UtilsService();
+  private _utilsService: UtilsService;
 
-  constructor(configuration: AbpHttpConfiguration, @Inject(DA_SERVICE_TOKEN) private _tokenService: ITokenService) {
+  constructor(
+    configuration: AbpHttpConfiguration,
+    @Inject(DA_SERVICE_TOKEN) private _tokenService: ITokenService,
+    private _cookie: CookieService,
+  ) {
     this.configuration = configuration;
   }
 
@@ -204,19 +213,8 @@ export class AbpHttpInterceptor implements HttpInterceptor {
       .pipe(
         _observableCatch((response_: any) => {
           return this.handleErrorResponse(response_, interceptObservable);
-          // if (response_ instanceof HttpResponseBase) {
-          //     try {
-          //         return this.processGetTimezoneComboboxItems(<any>response_);
-          //     } catch (e) {
-          //         return <Observable<SwaggerResponse<ComboboxItemDto[]>>><any>_observableThrow(e);
-          //     }
-          // } else
-          //     return <Observable<SwaggerResponse<ComboboxItemDto[]>>><any>_observableThrow(response_);
         }),
       )
-      // .pipe((error: any, caught: Observable<any>) => {
-      //     return this.handleErrorResponse(error, interceptObservable);
-      // })
       .subscribe((event: HttpEvent<any>) => {
         this.handleSuccessResponse(event, interceptObservable);
       });
@@ -233,11 +231,18 @@ export class AbpHttpInterceptor implements HttpInterceptor {
 
     modifiedHeaders = this.addXRequestedWithHeader(modifiedHeaders);
     modifiedHeaders = this.addAuthorizationHeaders(modifiedHeaders);
-    // modifiedHeaders = this.addAspNetCoreCultureHeader(modifiedHeaders);
-    // modifiedHeaders = this.addAcceptLanguageHeader(modifiedHeaders);
-    // modifiedHeaders = this.addTenantIdHeader(modifiedHeaders);
+    modifiedHeaders = this.addAspNetCoreCultureHeader(modifiedHeaders);
+    modifiedHeaders = this.addAcceptLanguageHeader(modifiedHeaders);
+    modifiedHeaders = this.addTenantIdHeader(modifiedHeaders);
+
+    // 统一加上服务端前缀
+    let url = request.url;
+    if (!url.startsWith('https://') && !url.startsWith('http://')) {
+      url = environment.api.baseUrl + url;
+    }
 
     return request.clone({
+      url: url,
       headers: modifiedHeaders,
     });
   }
@@ -250,32 +255,35 @@ export class AbpHttpInterceptor implements HttpInterceptor {
     return headers;
   }
 
-  // protected addAspNetCoreCultureHeader(headers: HttpHeaders): HttpHeaders {
-  //     const cookieLangValue = this._utilsService.getCookieValue('Abp.Localization.CultureName');
-  //     if (cookieLangValue && headers && !headers.has('.AspNetCore.Culture')) {
-  //         headers = headers.set('.AspNetCore.Culture', cookieLangValue);
-  //     }
+  protected addAspNetCoreCultureHeader(headers: HttpHeaders): HttpHeaders {
+    // const cookieLangValue = this._utilsService.getCookieValue('Abp.Localization.CultureName');
+    const cookieLangValue = this._cookie.get('Abp.Localization.CultureName');
+    if (cookieLangValue && headers && !headers.has('.AspNetCore.Culture')) {
+      headers = headers.set('.AspNetCore.Culture', cookieLangValue);
+    }
 
-  //     return headers;
-  // }
+    return headers;
+  }
 
-  // protected addAcceptLanguageHeader(headers: HttpHeaders): HttpHeaders {
-  //     const cookieLangValue = this._utilsService.getCookieValue('Abp.Localization.CultureName');
-  //     if (cookieLangValue && headers && !headers.has('Accept-Language')) {
-  //         headers = headers.set('Accept-Language', cookieLangValue);
-  //     }
+  protected addAcceptLanguageHeader(headers: HttpHeaders): HttpHeaders {
+    // const cookieLangValue = this._utilsService.getCookieValue('Abp.Localization.CultureName');
+    const cookieLangValue = this._cookie.get('Abp.Localization.CultureName');
+    if (cookieLangValue && headers && !headers.has('Accept-Language')) {
+      headers = headers.set('Accept-Language', cookieLangValue);
+    }
 
-  //     return headers;
-  // }
+    return headers;
+  }
 
-  // protected addTenantIdHeader(headers: HttpHeaders): HttpHeaders {
-  //     const cookieTenantIdValue = this._utilsService.getCookieValue('Abp.TenantId');
-  //     if (cookieTenantIdValue && headers && !headers.has('Abp.TenantId')) {
-  //         headers = headers.set('Abp.TenantId', cookieTenantIdValue);
-  //     }
+  protected addTenantIdHeader(headers: HttpHeaders): HttpHeaders {
+    // const cookieTenantIdValue = this._utilsService.getCookieValue('Abp.TenantId');
+    const cookieTenantIdValue = this._cookie.get('Abp.TenantId');
+    if (cookieTenantIdValue && headers && !headers.has('Abp.TenantId')) {
+      headers = headers.set('Abp.TenantId', cookieTenantIdValue);
+    }
 
-  //     return headers;
-  // }
+    return headers;
+  }
 
   protected addAuthorizationHeaders(headers: HttpHeaders): HttpHeaders {
     let authorizationHeaders = headers ? headers.getAll('Authorization') : null;
@@ -336,6 +344,7 @@ export class AbpHttpInterceptor implements HttpInterceptor {
     this.configuration.blobToText(error.error).subscribe((json) => {
       const errorBody = json === '' || json === 'null' ? {} : JSON.parse(json);
       const errorResponse = new HttpResponse({
+        status: error.status,
         headers: error.headers,
         body: errorBody,
       });

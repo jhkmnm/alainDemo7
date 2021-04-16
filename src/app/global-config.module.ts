@@ -48,6 +48,8 @@ const alainConfig: AlainConfig = {
       /\/api\/abp\/application-configuration/,
       /\/AbpUserConfiguration\/GetAll/,
       /\/TokenAuth\/Authenticate/,
+      /\/Account\/IsTenantAvailable/,
+      /\/Language\/SetDefaultLanguage/,
     ],
   },
 };

@@ -1,6 +1,13 @@
 import { Directive, Injector, OnInit } from '@angular/core';
 import { STChange } from '@delon/abc/st';
+import { Observable } from 'rxjs';
+import { catchError, finalize } from 'rxjs/operators';
 import { AppComponentBase } from './app-component-base';
+
+export class PagedResultDto {
+  items: any[];
+  totalCount: number;
+}
 
 export class EntityDto {
   id: number;
@@ -12,20 +19,26 @@ export class PagedRequestDto {
   sorting: string;
 }
 
+export class PageingInfo {
+  pageSize: number = 10;
+  pageNumber: number = 1;
+  totalItems: number;
+  isTableLoading = false;
+}
+
 @Directive()
 export abstract class PagedListingComponentBase<TEntityDto> extends AppComponentBase implements OnInit {
-  public pageSize = 10;
-  public pageIndex = 1;
-  // public totalPages = 1;
-  public totalItems: number;
-  public isTableLoading = false;
+  public pageingInfo = new PageingInfo();
+  filterText = '';
+  dataList: EntityDto[] = [];
+  sorting = '';
+
   public allChecked = false;
   public allCheckboxDisabled = false;
   public checkboxIndeterminate = false;
   public selectedDataItems: any[] = [];
-  public sorting: string = undefined;
-  filterText = '';
-  dataList: EntityDto[] = [];
+
+  private debounceTimeTag: any = undefined;
 
   constructor(injector: Injector) {
     super(injector);
@@ -36,15 +49,22 @@ export abstract class PagedListingComponentBase<TEntityDto> extends AppComponent
   }
 
   public booleanFilterList: any[] = [
-    { text: this.l('All'), value: 'All' },
+    { text: this.l('All'), value: null },
     { text: this.l('Yes'), value: true },
     { text: this.l('No'), value: false },
   ];
 
   refresh(): void {
-    this.pageIndex = 1;
-    this.restCheckStatus(this.dataList);
-    this.getDataPage(this.pageIndex);
+    if (this.debounceTimeTag) {
+      clearTimeout(this.debounceTimeTag);
+      this.debounceTimeTag = undefined;
+    }
+    this.debounceTimeTag = setTimeout(() => {
+      this.debounceTimeTag = undefined;
+      this.pageingInfo.pageNumber = 1;
+      this.restCheckStatus(this.dataList);
+      this.getDataPage(this.pageingInfo.pageNumber);
+    }, 100);
   }
 
   public change(ret: STChange) {
@@ -59,14 +79,24 @@ export abstract class PagedListingComponentBase<TEntityDto> extends AppComponent
 
   public getDataPage(page: number): void {
     const req = new PagedRequestDto();
-    req.maxResultCount = this.pageSize;
-    req.skipCount = (page - 1) * this.pageSize;
+    req.maxResultCount = this.pageingInfo.pageSize;
+    req.skipCount = (page - 1) * this.pageingInfo.pageSize;
     req.sorting = this.sorting;
-    this.isTableLoading = true;
-    this.list(req, () => {
-      this.isTableLoading = false;
-      this.refreshAllCheckBoxDisabled();
-    });
+    this.pageingInfo.isTableLoading = true;
+    this.list(req)
+      .pipe(
+        finalize(() => {
+          this.pageingInfo.isTableLoading = false;
+          this.refreshAllCheckBoxDisabled();
+        }),
+        catchError((error) => {
+          return error;
+        }),
+      )
+      .subscribe((result: PagedResultDto) => {
+        this.dataList = result.items;
+        this.pageingInfo.totalItems = result.totalCount;
+      });
   }
 
   // 是否全选
@@ -75,17 +105,17 @@ export abstract class PagedListingComponentBase<TEntityDto> extends AppComponent
   }
 
   public pageNumberChange($event: any): void {
-    this.pageIndex = parseInt($event);
-    if (this.pageIndex > 0) {
+    this.pageingInfo.pageNumber = parseInt($event);
+    if (this.pageingInfo.pageNumber > 0) {
       this.restCheckStatus(this.dataList);
-      this.getDataPage(this.pageIndex);
+      this.getDataPage(this.pageingInfo.pageNumber);
     }
   }
 
   public pageSizeChange($event: any): void {
-    this.pageSize = parseInt($event);
+    this.pageingInfo.pageSize = parseInt($event);
     this.restCheckStatus(this.dataList);
-    this.getDataPage(this.pageIndex);
+    this.getDataPage(this.pageingInfo.pageNumber);
   }
 
   // 全选
@@ -117,6 +147,7 @@ export abstract class PagedListingComponentBase<TEntityDto> extends AppComponent
     entityList.forEach((value) => (value.checked = false));
   }
 
-  protected abstract list(request: PagedRequestDto, finishedCallback: () => void): void;
+  // protected abstract list(request: PagedRequestDto, finishedCallback: () => void): void;
+  protected abstract list(request: PagedRequestDto): Observable<PagedResultDto>;
   protected abstract delete(entity: TEntityDto): void;
 }

@@ -59,10 +59,10 @@
       #table
       [nzData]="dataList"
       [nzFrontPagination]="false"
-      [nzLoading]="isTableLoading"
-      [nzTotal]="totalItems"
-      [nzPageSize]="pageSize"
-      [nzPageIndex]="pageIndex"
+      [nzLoading]="pageingInfo.isTableLoading"
+      [nzTotal]="pageingInfo.totalItems"
+      [nzPageSize]="pageingInfo.pageSize"
+      [nzPageIndex]="pageingInfo.pageNumber"
       (nzPageIndexChange)="pageNumberChange($event)"
       (nzPageSizeChange)="pageSizeChange($event)"
       [nzShowSizeChanger]="true"
@@ -128,33 +128,3 @@
     </nz-table>
   </div>
 </nz-card>
-
-<!-- 编辑窗口
-<ng-template #modalContent>
-   <nz-tabset [nzAnimated]="false" class="tabs" style="margin-top: -24px;" (nzSelectChange)="switch($event)">
-      <nz-tab [nzTitle]="'Role' | translate">-->
-<!-- 展示名称 -->
-<!-- <nz-form-item>
-            <nz-form-label style="text-align: center" nzSm="4" nzFor="displayName" nzRequired>展示名称</nz-form-label>
-            <nz-form-control [nzErrorTip]="displayNameValidationTpl" nzHasFeedback nzSm="20">
-               <input nz-input name="displayName" [(ngModel)]="createOrUpdateDto.role.displayName"
-                  [placeholder]="'展示名称'" required autocomplete="off" />
-               <ng-template #displayNameValidationTpl let-control>
-                  <validation-messages [formCtrl]="control"></validation-messages>
-               </ng-template>
-            </nz-form-control>
-         </nz-form-item> -->
-<!-- 是否默认 -->
-<!-- <nz-form-item>
-            <label nz-checkbox [(ngModel)]="createOrUpdateDto.role.isDefault">是否默认</label>
-         </nz-form-item>
-      </nz-tab>
-      <nz-tab [nzTitle]="'Permissions' | translate">
-         <ng-template #permissionsTitleTpl>
-            <i nz-icon nzType="safety"></i>
-            {{'Permissions' | translate}}
-         </ng-template>
-         <permission-tree #permissionTree></permission-tree>
-      </nz-tab>
-   </nz-tabset>
-</ng-template> -->

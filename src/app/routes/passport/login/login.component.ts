@@ -5,7 +5,13 @@ import { StartupService } from '@core';
 import { ReuseTabService } from '@delon/abc/reuse-tab';
 import { DA_SERVICE_TOKEN, ITokenModel, ITokenService, SocialService } from '@delon/auth';
 import { SettingsService, _HttpClient } from '@delon/theme';
-import { AuthenticateModel, TokenAuthServiceProxy } from '@shared/service-proxies/service-proxies';
+import { CookieService } from '@delon/util';
+import {
+  AuthenticateModel,
+  TokenAuthServiceProxy,
+  AccountServiceProxy,
+  IsTenantAvailableInput,
+} from '@shared/service-proxies/service-proxies';
 import { NzMessageService } from 'ng-zorro-antd/message';
 
 @Component({
@@ -16,6 +22,7 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 })
 export class UserLoginComponent implements OnDestroy {
   loginModel: AuthenticateModel;
+  tenant: IsTenantAvailableInput;
 
   constructor(
     fb: FormBuilder,
@@ -28,15 +35,19 @@ export class UserLoginComponent implements OnDestroy {
     @Inject(DA_SERVICE_TOKEN) private tokenService: ITokenService,
     private startupSrv: StartupService,
     public http: _HttpClient,
-    public msg: NzMessageService,
+    // public msg: NzMessageService,
     private loginService: TokenAuthServiceProxy,
+    private accountService: AccountServiceProxy,
+    private cookie: CookieService,
   ) {
     this.form = fb.group({
       userName: [null, [Validators.required]],
       password: [null, [Validators.required]],
+      tenancyName: [null],
       remember: [true],
     });
     this.loginModel = new AuthenticateModel();
+    this.tenant = new IsTenantAvailableInput();
   }
 
   // #region fields
@@ -47,38 +58,10 @@ export class UserLoginComponent implements OnDestroy {
   get password(): AbstractControl {
     return this.form.controls.password;
   }
-  get mobile(): AbstractControl {
-    return this.form.controls.mobile;
-  }
-  get captcha(): AbstractControl {
-    return this.form.controls.captcha;
-  }
   form: FormGroup;
   error = '';
 
-  // #region get captcha
-
-  count = 0;
   interval$: any;
-
-  // #endregion
-
-  getCaptcha(): void {
-    if (this.mobile.invalid) {
-      this.mobile.markAsDirty({ onlySelf: true });
-      this.mobile.updateValueAndValidity({ onlySelf: true });
-      return;
-    }
-    this.count = 59;
-    this.interval$ = setInterval(() => {
-      this.count -= 1;
-      if (this.count <= 0) {
-        clearInterval(this.interval$);
-      }
-    }, 1000);
-  }
-
-  // #endregion
 
   submit(): void {
     this.error = '';
@@ -90,6 +73,22 @@ export class UserLoginComponent implements OnDestroy {
       return;
     }
 
+    if (this.tenant.tenancyName) {
+      this.accountService.isTenantAvailable(this.tenant).subscribe((res) => {
+        if (res.state === 1) {
+          this.cookie.put('Abp.TenantId', res.tenantId.toString());
+          this.login();
+        } else {
+          this.error = '输入的企业编码不存在';
+        }
+      });
+    } else {
+      this.cookie.remove('Abp.TenantId');
+      this.login();
+    }
+  }
+
+  login(): void {
     this.loginService.authenticate(this.loginModel).subscribe((res) => {
       // 清空路由复用信息
       this.reuseTabService.clear();
@@ -111,35 +110,6 @@ export class UserLoginComponent implements OnDestroy {
         this.router.navigateByUrl(url);
       });
     });
-
-    // // 默认配置中对所有HTTP请求都会强制 [校验](https://ng-alain.com/auth/getting-started) 用户 Token
-    // // 然一般来说登录请求不需要校验，因此可以在请求URL加上：`/login?_allow_anonymous=true` 表示不触发用户 Token 校验
-    // this.http
-    //   .post('/login/account?_allow_anonymous=true', {
-    //     type: this.type,
-    //     userName: this.userName.value,
-    //     password: this.password.value,
-    //   })
-    //   .subscribe((res) => {
-    //     if (res.msg !== 'ok') {
-    //       this.error = res.msg;
-    //       return;
-    //     }
-    //     // 清空路由复用信息
-    //     this.reuseTabService.clear();
-    //     // 设置用户Token信息
-    //     // TODO: Mock expired value
-    //     res.user.expired = +new Date() + 1000 * 60 * 5;
-    //     this.tokenService.set(res.user);
-    //     // 重新获取 StartupService 内容，我们始终认为应用信息一般都会受当前用户授权范围而影响
-    //     this.startupSrv.load().then(() => {
-    //       let url = this.tokenService.referrer!.url || '/';
-    //       if (url.includes('/passport')) {
-    //         url = '/';
-    //       }
-    //       this.router.navigateByUrl(url);
-    //     });
-    //   });
   }
 
   // #region social

@@ -1,9 +1,11 @@
 import { Component, Injector, OnInit, TemplateRef } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { PagedListingComponentBase, PagedRequestDto } from '@shared/common/paged-listing-component-base';
-import { CreateOrUpdateUserInput, UserListDto, UserServiceProxy } from '@shared/service-proxies/service-proxies';
+import { PagedListingComponentBase, PagedRequestDto, PagedResultDto } from '@shared/common/paged-listing-component-base';
+import { UserListDto, UserServiceProxy } from '@shared/service-proxies/service-proxies';
+import { Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
+import { CreateOrUpdateComponent } from './create-or-update/create-or-update.component';
 
 @Component({
   selector: 'app-user',
@@ -20,124 +22,43 @@ export class UserComponent extends PagedListingComponentBase<UserListDto> implem
     filterText: '',
     isActive: null,
   };
-  createOrUpdateDto: CreateOrUpdateUserInput = new CreateOrUpdateUserInput();
-  form: FormGroup;
 
-  constructor(
-    injector: Injector,
-    fb: FormBuilder,
-    private _userService: UserServiceProxy,
-    private router: Router,
-    private activatedRoute: ActivatedRoute,
-  ) {
+  constructor(injector: Injector, private _userService: UserServiceProxy) {
     super(injector);
-
-    this.form = fb.group({
-      userName: [null, [Validators.required]],
-      emailAddress: [null, [Validators.required]],
-      phoneNumber: [null, [Validators.required]],
-      password: [null, [Validators.required]],
-      profilePictureId: [null],
-      isActive: [null],
-      isLockoutEnabled: [null],
-      needToChangeThePassword: [null],
-    });
-  }
-
-  get userName(): AbstractControl {
-    return this.form.controls.userName;
-  }
-
-  get emailAddress(): AbstractControl {
-    return this.form.controls.emailAddress;
-  }
-
-  get phoneNumber(): AbstractControl {
-    return this.form.controls.phoneNumber;
-  }
-
-  get password(): AbstractControl {
-    return this.form.controls.password;
   }
 
   ngOnInit() {
     super.ngOnInit();
   }
 
-  initData(id: number | null): void {
-    const self = this;
-
-    this._userService.getUserForEdit(id).subscribe((result) => {
-      debugger;
-      this.createOrUpdateDto.user = result.user;
-    });
-  }
-
-  protected list(request: PagedRequestDto, finishedCallback: () => void): void {
-    this._userService
-      .getPaged(
-        null,
-        null,
-        null,
-        this.query.isActive,
-        false,
-        this.query.filterText,
-        request.sorting,
-        request.maxResultCount,
-        request.skipCount,
-      )
-      .pipe(finalize(finishedCallback))
-      .subscribe((result) => {
-        this.dataList = result.items;
-        this.totalItems = result.totalCount;
-      });
-  }
-
-  inputInvalid(): boolean {
-    this.userName.markAsDirty();
-    this.userName.updateValueAndValidity();
-    this.password.markAsDirty();
-    this.password.updateValueAndValidity();
-    this.phoneNumber.markAsDirty();
-    this.phoneNumber.updateValueAndValidity();
-    this.emailAddress.markAsDirty();
-    this.emailAddress.updateValueAndValidity();
-    if (this.userName.invalid || this.password.invalid || this.phoneNumber.invalid || this.emailAddress.invalid) {
-      return false;
-    }
-    return true;
+  protected list(request: PagedRequestDto): Observable<PagedResultDto> {
+    return this._userService.getPaged(
+      null,
+      null,
+      null,
+      this.query.isActive,
+      false,
+      this.query.filterText,
+      request.sorting,
+      request.maxResultCount,
+      request.skipCount,
+    );
   }
 
   create(tpl: TemplateRef<{}>): void {
-    // this.initData(null);
-    // this.modal.create({
-    //    nzTitle: this.l("CreateNewUser"),
-    //    nzContent: tpl,
-    //    nzOnOk: (): boolean => {
-    //       if (this.inputInvalid()) {
-    //          this._userService.createOrUpdate(this.createOrUpdateDto)
-    //             .subscribe((result) => this.refresh());
-    //          return true;
-    //       } else {
-    //          return false;
-    //       }
-    //    }
-    // })
+    this.modalHelper.createStatic(CreateOrUpdateComponent, { id: null }).subscribe((result) => {
+      if (result) {
+        this.refresh();
+      }
+    });
   }
 
   edit(tpl: TemplateRef<{}>, entity: UserListDto): void {
-    // this.initData(entity.id);
-    // let title = this.l("EditUser") + '-' + entity.displayName;
-    // this.modal.create({
-    //    nzTitle: title,
-    //    nzContent: tpl,
-    //    nzOnOk: () => {
-    //       if (this.inputInvalid()) {
-    //          this._userService.createOrUpdate(this.createOrUpdateDto)
-    //             .subscribe((result) => this.refresh());
-    //       }
-    //    }
-    // });
+    this.modalHelper.createStatic(CreateOrUpdateComponent, { id: entity.id }).subscribe((result) => {
+      if (result) {
+        this.refresh();
+      }
+    });
   }
 
   delete(item: UserListDto) {

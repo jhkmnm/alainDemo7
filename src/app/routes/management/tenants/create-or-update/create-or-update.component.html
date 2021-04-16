@@ -1,5 +1,6 @@
 <div class="modal-header">
-  <div class="modal-title">编辑角色</div>
+  <div class="modal-title" *ngIf="!id">创建租户</div>
+  <div class="modal-title" *ngIf="id">编辑租户 {{ record.name }}</div>
 </div>
 <nz-spin *ngIf="!record" class="modal-spin"></nz-spin>
 <sf *ngIf="record" #sf mode="edit" [schema]="schema" [ui]="ui" [formData]="record" button="none">

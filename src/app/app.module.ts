@@ -2,6 +2,9 @@
 // #endregion
 // #region global third module
 import { BidiModule } from '@angular/cdk/bidi';
+import { NZ_ICONS } from 'ng-zorro-antd/icon';
+import { IconDefinition } from '@ant-design/icons-angular';
+import * as AllIcons from '@ant-design/icons-angular/icons';
 // register angular
 import { registerLocaleData } from '@angular/common';
 import { HttpClient, HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
@@ -37,6 +40,7 @@ import { LayoutModule } from './layout/layout.module';
 import { RoutesModule } from './routes/routes.module';
 import { SharedModule } from './shared/shared.module';
 import { STWidgetModule } from './shared/st-widget/st-widget.module';
+import { UtilsService } from './core/net/utils.service';
 
 const LANG = {
   abbr: 'zh',
@@ -97,6 +101,11 @@ export function getRemoteServiceBaseUrl(): string {
 }
 //#endregion
 
+const antDesignIcons = AllIcons as {
+  [key: string]: IconDefinition;
+};
+const icons: IconDefinition[] = Object.keys(antDesignIcons).map((key) => antDesignIcons[key]);
+
 @NgModule({
   declarations: [AppComponent],
   imports: [
@@ -123,6 +132,8 @@ export function getRemoteServiceBaseUrl(): string {
     ...APPINIT_PROVIDES,
     ...APIBASEURL_PROVIDES,
     AbpHttpConfiguration,
+    UtilsService,
+    { provide: NZ_ICONS, useValue: icons },
   ],
   bootstrap: [AppComponent],
 })

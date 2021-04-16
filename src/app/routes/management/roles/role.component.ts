@@ -1,10 +1,11 @@
 import { Component, Injector, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { PagedListingComponentBase, PagedRequestDto } from '@shared/common/paged-listing-component-base';
+import { ArrayService } from '@delon/util';
+import { PagedListingComponentBase, PagedRequestDto, PagedResultDto } from '@shared/common/paged-listing-component-base';
 import { PermissionTreeComponent } from '@shared/common/permission-tree/permission-tree.component';
 import { CreateOrUpdateRoleInput, RoleListDto, RoleServiceProxy } from '@shared/service-proxies/service-proxies';
+import { Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
-import { CreateOrEditRoleComponent } from './create-or-edit/create-or-edit-role.component';
+import { CreateOrUpdateRoleComponent } from './create-or-update/role.createorupdate.component';
 
 @Component({
   selector: 'app-role',
@@ -19,7 +20,7 @@ export class RoleComponent extends PagedListingComponentBase<RoleListDto> implem
   filterText: string | null;
   createOrUpdateDto: CreateOrUpdateRoleInput = new CreateOrUpdateRoleInput();
 
-  constructor(injector: Injector, private _roleService: RoleServiceProxy, private router: Router, private activatedRoute: ActivatedRoute) {
+  constructor(injector: Injector, private _roleService: RoleServiceProxy) {
     super(injector);
   }
 
@@ -27,65 +28,24 @@ export class RoleComponent extends PagedListingComponentBase<RoleListDto> implem
     super.ngOnInit();
   }
 
-  protected list(request: PagedRequestDto, finishedCallback: () => void): void {
-    this._roleService
-      .getPaged(null, this.filterText, null, request.maxResultCount, request.skipCount)
-      .pipe(finalize(finishedCallback))
-      .subscribe((res) => {
-        this.dataList = res.items;
-        this.totalItems = res.totalCount;
-      });
-  }
-
-  protected initData(id: number | null): void {
-    const self = this;
-
-    this._roleService.getForEdit(id).subscribe((result) => {
-      debugger;
-      this.createOrUpdateDto.role = result.role;
-      this.createOrUpdateDto.grantedPermissionNames = result.grantedPermissionNames;
-      self.permissionTree.editData = result;
-    });
+  protected list(request: PagedRequestDto): Observable<PagedResultDto> {
+    return this._roleService.getPaged(null, this.filterText, null, request.maxResultCount, request.skipCount);
   }
 
   create(tpl: TemplateRef<{}>): void {
-    // this.initData(null);
-
-    this.modalHelper.open(CreateOrEditRoleComponent, {}, 'md', { nzMask: true }).subscribe((res) => {
+    this.modalHelper.createStatic(CreateOrUpdateRoleComponent, { id: null }).subscribe((res) => {
       if (res) {
         this.refresh();
       }
     });
-    // this.modal.create({
-    //    nzTitle: this.l('CreatingNewRole'),
-    //    nzContent: CreateOrEditRoleComponent,
-    //    nzOnOk: () => {
-    //       this.createOrUpdateDto.grantedPermissionNames = this.permissionTree.getGrantedPermissionNames();
-    //       this._roleService.createOrUpdate(this.createOrUpdateDto)
-    //          .subscribe((res) => this.refresh());
-    //    },
-    // });
   }
 
   edit(tpl: TemplateRef<{}>, entity: RoleListDto): void {
-    // this.initData(entity.id);
-
-    this.modalHelper.open(CreateOrEditRoleComponent, { id: entity.id }, 'md', { nzMask: true }).subscribe((res) => {
+    this.modalHelper.createStatic(CreateOrUpdateRoleComponent, { id: entity.id }).subscribe((res) => {
       if (res) {
         this.refresh();
       }
     });
-
-    // let title = this.l('EditingRole') + '-' + entity.displayName;
-    // this.modal.create({
-    //    nzTitle: title,
-    //    nzContent: tpl,
-    //    nzOnOk: () => {
-    //       this.createOrUpdateDto.grantedPermissionNames = this.permissionTree.getGrantedPermissionNames();
-    //       this._roleService.createOrUpdate(this.createOrUpdateDto)
-    //          .subscribe((result) => this.refresh());
-    //    },
-    // });
   }
 
   delete(item: RoleListDto) {
