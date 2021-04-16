@@ -1,4 +1,4 @@
-import { Component, ElementRef, Inject, Injector, Input, OnInit, Renderer2, ViewChild } from '@angular/core';
+import { Component, Inject, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { ArrayService } from '@delon/util';
 import { SFComponent, SFSchema, SFUISchema } from '@delon/form';
 import { ModalComponentBase } from '@shared/common/modal-component-base';
