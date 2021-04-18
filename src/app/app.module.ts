@@ -43,6 +43,7 @@ import { STWidgetModule } from './shared/st-widget/st-widget.module';
 import { UtilsService } from './core/net/utils.service';
 import { AppSessionService } from '@shared/common/session/app-session.service';
 import { DateTimeService } from '@shared/common/timing/date-time.service';
+import { FileDownloadService } from '@shared/common/file-download.service';
 
 const LANG = {
   abbr: 'zh',
@@ -139,6 +140,7 @@ const icons: IconDefinition[] = Object.keys(antDesignIcons).map((key) => antDesi
     UtilsService,
     AppSessionService,
     DateTimeService,
+    FileDownloadService,
     { provide: NZ_ICONS, useValue: icons },
   ],
   bootstrap: [AppComponent],
