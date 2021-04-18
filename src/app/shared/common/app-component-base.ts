@@ -4,10 +4,12 @@ import { ACLService } from '@delon/acl';
 import { ModalHelper } from '@delon/theme';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalService } from 'ng-zorro-antd/modal';
+import { AppSessionService } from './session/app-session.service';
 
 export abstract class AppComponentBase {
   localization: I18NService;
   acl: ACLService;
+  appSession: AppSessionService;
   msgSrv: NzMessageService;
   modalHelper: ModalHelper;
   modalSrv: NzModalService;
@@ -18,6 +20,8 @@ export abstract class AppComponentBase {
     this.msgSrv = injector.get(NzMessageService);
     this.modalHelper = injector.get(ModalHelper);
     this.modalSrv = injector.get(NzModalService);
+    this.appSession = injector.get(AppSessionService);
+    this.appSession.init();
   }
 
   l(key: string, ...args: any[]): string {

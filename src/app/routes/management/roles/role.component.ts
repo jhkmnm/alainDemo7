@@ -26,6 +26,7 @@ export class RoleComponent extends PagedListingComponentBase<RoleListDto> implem
 
   ngOnInit() {
     super.ngOnInit();
+    this.filterText = this.appSession.getShownLoginName();
   }
 
   protected list(request: PagedRequestDto): Observable<PagedResultDto> {

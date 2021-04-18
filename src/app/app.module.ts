@@ -41,6 +41,8 @@ import { RoutesModule } from './routes/routes.module';
 import { SharedModule } from './shared/shared.module';
 import { STWidgetModule } from './shared/st-widget/st-widget.module';
 import { UtilsService } from './core/net/utils.service';
+import { AppSessionService } from '@shared/common/session/app-session.service';
+import { DateTimeService } from '@shared/common/timing/date-time.service';
 
 const LANG = {
   abbr: 'zh',
@@ -81,15 +83,17 @@ const INTERCEPTOR_PROVIDES = [
   { provide: HTTP_INTERCEPTORS, useClass: JWTInterceptor, multi: true },
   // { provide: HTTP_INTERCEPTORS, useClass: DefaultInterceptor, multi: true },
 ];
-export function StartupServiceFactory(startupService: StartupService): () => Promise<void> {
+export function StartupServiceFactory(startupService: StartupService, appSession: AppSessionService): () => Promise<void> {
+  appSession.init();
   return () => startupService.load();
 }
 const APPINIT_PROVIDES = [
   StartupService,
+  AppSessionService,
   {
     provide: APP_INITIALIZER,
     useFactory: StartupServiceFactory,
-    deps: [StartupService],
+    deps: [StartupService, AppSessionService],
     multi: true,
   },
 ];
@@ -133,6 +137,8 @@ const icons: IconDefinition[] = Object.keys(antDesignIcons).map((key) => antDesi
     ...APIBASEURL_PROVIDES,
     AbpHttpConfiguration,
     UtilsService,
+    AppSessionService,
+    DateTimeService,
     { provide: NZ_ICONS, useValue: icons },
   ],
   bootstrap: [AppComponent],

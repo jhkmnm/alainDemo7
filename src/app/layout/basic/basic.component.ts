@@ -12,7 +12,7 @@ import { environment } from '@env/environment';
           <i nz-icon nzType="lock"></i>
         </a>
       </layout-default-header-item>
-      <layout-default-header-item direction="middle"> abcfefg </layout-default-header-item>
+      <layout-default-header-item direction="middle"> abc </layout-default-header-item>
       <layout-default-header-item direction="right">
         <header-notify></header-notify>
       </layout-default-header-item>

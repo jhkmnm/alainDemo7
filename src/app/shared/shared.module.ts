@@ -13,7 +13,6 @@ import { PermissionTreeComponent } from './common/permission-tree/permission-tre
 import { SHARED_DELON_MODULES } from './shared-delon.module';
 import { SHARED_ZORRO_MODULES } from './shared-zorro.module';
 
-
 // #region third libs
 // import { NgxTinymceModule } from 'ngx-tinymce';
 // import { UEditorModule } from 'ngx-ueditor';
@@ -61,4 +60,4 @@ const DIRECTIVES: Type<any>[] = [];
     ...DIRECTIVES,
   ],
 })
-export class SharedModule { }
+export class SharedModule {}

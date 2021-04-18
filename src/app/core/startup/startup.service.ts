@@ -4,6 +4,7 @@ import { ACLService } from '@delon/acl';
 import { DA_SERVICE_TOKEN, ITokenService } from '@delon/auth';
 import { ALAIN_I18N_TOKEN, MenuService, SettingsService, TitleService } from '@delon/theme';
 import { TranslateService } from '@ngx-translate/core';
+import { AppSessionService } from '@shared/common/session/app-session.service';
 import { NzIconService } from 'ng-zorro-antd/icon';
 import { zip } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -81,7 +82,14 @@ export class StartupService {
             // // 用户信息：包括姓名、头像、邮箱地址
             // this.settingService.setUser(res.user);
             // ACL：设置权限为全量
-            this.aclService.setFull(true);
+            // this.aclService.setFull(true);
+            let auths = serviceData.auth.grantedPermissions;
+            let authkeys = [];
+            for (var property in auths) {
+              authkeys.push(property);
+            }
+            this.aclService.setAbility(authkeys);
+
             // // 初始化菜单
             // this.menuService.add(res.menu);
             this.menuService.add(MENUS);
