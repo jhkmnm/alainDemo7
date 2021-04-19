@@ -28,7 +28,14 @@ const MENUS: Menu[] = [
             text: 'AuditLogs',
             i18n: 'AuditLogs',
             link: '/management/auditlog',
-            acl: { ability: ['Pages.Administration.Roles'] }, // 权限
+            acl: { ability: ['Pages.Administration.AuditLogs'] }, // 权限
+            icon: 'anticon-mail',
+          },
+          {
+            text: 'OrganizationUnits',
+            i18n: 'OrganizationUnits',
+            link: '/management/organization',
+            acl: { ability: ['Pages.Administration.OrganizationUnits'] }, // 权限
             icon: 'anticon-mail',
           },
           {

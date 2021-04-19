@@ -61,6 +61,7 @@
     "@ngx-translate/core": "^13.0.0",
     "@ngx-translate/http-loader": "^6.0.0",
     "ajv": "^7.1.1",
+    "lodash-es": "^4.17.21",
     "luxon": "^1.26.0",
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.33",

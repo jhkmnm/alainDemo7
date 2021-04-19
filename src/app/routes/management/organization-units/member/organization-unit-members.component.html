@@ -1,0 +1,67 @@
+<ng-container *ngIf="organizationUnit">
+  <ng-container *ngIf="isGranted('Pages.Administration.OrganizationUnits.ManageUsers')">
+    <button nz-button nzType="primary" (click)="addMembers()"><i nz-icon nzType="plus"></i> {{ 'AddMember' | translate }}</button>
+  </ng-container>
+  <div class="my-md">
+    <nz-table
+      #ajaxTable
+      [nzFrontPagination]="false"
+      [nzShowQuickJumper]="true"
+      [nzShowSizeChanger]="true"
+      [nzData]="dataList"
+      [nzTotal]="pageingInfo.totalItems"
+      [nzLoading]="pageingInfo.isTableLoading"
+      [(nzPageIndex)]="pageingInfo.pageNumber"
+      [(nzPageSize)]="pageingInfo.pageSize"
+      (nzPageIndexChange)="refresh()"
+      (nzPageSizeChange)="refresh()"
+      [nzShowTotal]="totalTemplate"
+    >
+      <ng-template #totalTemplate let-total>
+        {{ l('TotalRecordsCount', total) }}
+      </ng-template>
+      <thead (nzSortChange)="gridSort($event)">
+        <tr>
+          <th nzWidth="150px" class="text-center">
+            {{ 'Actions' | translate }}
+          </th>
+          <th nzShowSort nzColumnKey="userName">
+            {{ 'UserName' | translate }}
+          </th>
+          <th nzShowSort nzColumnKey="addedTime" class="text-center">
+            {{ 'AddedTime' | translate }}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of ajaxTable.data">
+          <td class="text-center">
+            <ng-container *ngIf="isGranted('Pages.Administration.OrganizationUnits.ManageUsers')">
+              <a
+                nz-popconfirm
+                [nzPopconfirmTitle]="l('RemoveUserFromOuWarningMessage', item.userName, organizationUnit.title)"
+                (nzOnConfirm)="removeMember(item)"
+                [nzOkText]="l('Ok')"
+                [nzCancelText]="l('Cancel')"
+                class="text-red"
+              >
+                <i nz-icon nzType="delete"></i>
+                {{ 'Delete' | translate }}
+              </a>
+            </ng-container>
+          </td>
+          <td>
+            {{ item.userName }}
+          </td>
+          <td class="text-center">
+            {{ item.addedTime | date: 'yyyy-MM-dd' }}
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+  </div>
+</ng-container>
+
+<div class="text-center" *ngIf="!organizationUnit">
+  <nz-empty class="ant-empty-normal" [nzNotFoundContent]="l('SelectAnOrganizationUnitToSeeMembers')"></nz-empty>
+</div>
