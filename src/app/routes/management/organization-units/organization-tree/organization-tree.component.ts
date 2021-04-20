@@ -5,10 +5,10 @@ import { NzContextMenuService, NzDropdownMenuComponent } from 'ng-zorro-antd/dro
 
 import { AppComponentBase } from '@shared/common/app-component-base';
 import {
-  OrganizationUnitServiceProxy,
-  MoveOrganizationUnitInput,
-  OrganizationUnitListDtoListResultDto,
-  OrganizationUnitListDto,
+   OrganizationUnitServiceProxy,
+   MoveOrganizationUnitInput,
+   OrganizationUnitListDtoListResultDto,
+   OrganizationUnitListDto,
 } from '@shared/service-proxies/service-proxies';
 import { finalize, catchError } from 'rxjs/operators';
 import { throwError } from 'rxjs';
@@ -16,282 +16,281 @@ import { ArrayService } from '@delon/util';
 import { CreateOrEditUnitModalComponent } from '../create-or-update/unit.createorupdate.component';
 
 @Component({
-  selector: 'organization-tree',
-  templateUrl: './organization-tree.component.html',
-  styleUrls: ['./organization-tree.component.less'],
+   selector: 'organization-tree',
+   templateUrl: './organization-tree.component.html',
+   styleUrls: ['./organization-tree.component.less'],
 })
 export class OrganizationTreeComponent extends AppComponentBase implements OnInit {
-  @Output()
-  selectedChange = new EventEmitter<NzTreeNode>();
+   @Output()
+   selectedChange = new EventEmitter<NzTreeNode>();
 
-  loading = false;
-  totalUnitCount = 0;
-  _treeData: NzTreeNode[] = [];
-  private _ouData: OrganizationUnitListDto[] = [];
-  activedNode: NzTreeNode;
-  private dragSrcNode: NzTreeNode;
-  private dragTargetNode: NzTreeNode;
-  draging = false;
+   loading = false;
+   totalUnitCount = 0;
+   _treeData: NzTreeNode[] = [];
+   private _ouData: OrganizationUnitListDto[] = [];
+   activedNode: NzTreeNode;
+   private dragSrcNode: NzTreeNode;
+   private dragTargetNode: NzTreeNode;
+   draging = false;
 
-  constructor(
-    injector: Injector,
-    private _organizationUnitService: OrganizationUnitServiceProxy,
-    private _nzContextMenuService: NzContextMenuService,
-    private _arrayService: ArrayService,
-  ) {
-    super(injector);
-  }
+   constructor(
+      injector: Injector,
+      private _organizationUnitService: OrganizationUnitServiceProxy,
+      private _nzContextMenuService: NzContextMenuService,
+      private _arrayService: ArrayService
+   ) {
+      super(injector);
+   }
 
-  ngOnInit(): void {
-    this.reload();
-  }
+   ngOnInit(): void {
+      this.reload();
+   }
 
-  reload(): void {
-    this.getTreeDataFromServer((treeData) => {
-      this.totalUnitCount = this._ouData.length;
-      this._treeData = treeData;
-    });
-  }
-
-  private getTreeDataFromServer(callback: (ous: NzTreeNode[]) => void): void {
-    this.loading = true;
-    this._organizationUnitService
-      .getAllOrganizationUnitList()
-      .pipe(
-        finalize(() => {
-          this.loading = false;
-        }),
-      )
-      .subscribe((result: OrganizationUnitListDtoListResultDto) => {
-        this._ouData = result.items;
-        const treeData = this.treeDataMap();
-        callback(treeData);
+   reload(): void {
+      this.getTreeDataFromServer((treeData) => {
+         this.totalUnitCount = this._ouData.length;
+         this._treeData = treeData;
       });
-  }
+   }
 
-  treeDataMap(): NzTreeNode[] {
-    return this._arrayService.arrToTreeNode(this._ouData, {
-      idMapName: 'id',
-      parentIdMapName: 'parentId',
-      titleMapName: 'displayName',
-      cb: (item) => {
-        item.expanded = true;
-      },
-    });
-  }
+   private getTreeDataFromServer(callback: (ous: NzTreeNode[]) => void): void {
+      this.loading = true;
+      this._organizationUnitService
+         .getAllOrganizationUnitList()
+         .pipe(
+            finalize(() => {
+               this.loading = false;
+            })
+         )
+         .subscribe((result: OrganizationUnitListDtoListResultDto) => {
+            this._ouData = result.items;
+            const treeData = this.treeDataMap();
+            callback(treeData);
+         });
+   }
 
-  openFolder(data: NzTreeNode | NzFormatEmitEvent): void {
-    if (data instanceof NzTreeNode) {
-      data.isExpanded = !data.isExpanded;
-    } else {
-      const node = data.node;
-      if (node) {
-        node.isExpanded = !node.isExpanded;
+   treeDataMap(): NzTreeNode[] {
+      return this._arrayService.arrToTreeNode(this._ouData, {
+         idMapName: 'id',
+         parentIdMapName: 'parentId',
+         titleMapName: 'displayName',
+         cb: (item) => {
+            item.expanded = true;
+         },
+      });
+   }
+
+   openFolder(data: NzTreeNode | NzFormatEmitEvent): void {
+      if (data instanceof NzTreeNode) {
+         data.isExpanded = !data.isExpanded;
+      } else {
+         const node = data.node;
+         if (node) {
+            node.isExpanded = !node.isExpanded;
+         }
       }
-    }
-  }
+   }
 
-  activeNode(data: NzFormatEmitEvent): void {
-    this._setActiveNodeValue(data.node);
-  }
+   activeNode(data: NzFormatEmitEvent): void {
+      this._setActiveNodeValue(data.node);
+   }
 
-  private _setActiveNodeValue(currentNode: NzTreeNode) {
-    this._setActiveNodeNull(false);
-    currentNode.isSelected = true;
-    this.activedNode = currentNode;
-    this.selectedChange.emit(currentNode);
-  }
+   private _setActiveNodeValue(currentNode: NzTreeNode) {
+      this._setActiveNodeNull(false);
+      currentNode.isSelected = true;
+      this.activedNode = currentNode;
+      this.selectedChange.emit(currentNode);
+   }
 
-  private _setActiveNodeNull(isEmit: boolean = true) {
-    if (this.activedNode) {
-      this.activedNode.isSelected = false;
-      if (isEmit) {
-        this.selectedChange.emit(null);
+   private _setActiveNodeNull(isEmit: boolean = true) {
+      if (this.activedNode) {
+         this.activedNode.isSelected = false;
+         if (isEmit) {
+            this.selectedChange.emit(null);
+         }
       }
-    }
-  }
+   }
 
-  dragEnter(event: NzFormatEmitEvent): void {
-    this.dragSrcNode = null;
-    this.dragTargetNode = null;
-    this.dragSrcNode = event.dragNode;
-    this.dragTargetNode = event.node;
-  }
+   dragEnter(event: NzFormatEmitEvent): void {
+      this.dragSrcNode = null;
+      this.dragTargetNode = null;
+      this.dragSrcNode = event.dragNode;
+      this.dragTargetNode = event.node;
+   }
 
-  dragSaveData(event: NzFormatEmitEvent): void {
-    if (this.dragSrcNode && this.dragTargetNode) {
-      if (this.dragSrcNode.key !== this.dragTargetNode.key) {
-        this.draging = true;
-        this.modalSrv.confirm({
-          nzContent: this.l('OrganizationUnitMoveConfirmMessage', this.dragSrcNode.title, this.dragTargetNode.title),
-          nzOkText: this.l('Yes'),
-          nzCancelText: this.l('No'),
-          nzOnOk: () => {
-            const input = new MoveOrganizationUnitInput();
-            // tslint:disable-next-line:radix
-            input.id = parseInt(this.dragSrcNode.key);
-            input.newParentId =
-              this.dragTargetNode === null
-                ? undefined
-                : // tslint:disable-next-line:radix
-                  parseInt(this.dragTargetNode.key);
-            this._organizationUnitService
-              .move(input)
-              .pipe(
-                finalize(() => {
-                  this.draging = false;
+   dragSaveData(event: NzFormatEmitEvent): void {
+      if (this.dragSrcNode && this.dragTargetNode) {
+         if (this.dragSrcNode.key !== this.dragTargetNode.key) {
+            this.draging = true;
+            this.modalSrv.confirm({
+               nzContent: this.l('OrganizationUnitMoveConfirmMessage', this.dragSrcNode.title, this.dragTargetNode.title),
+               nzOkText: this.l('Yes'),
+               nzCancelText: this.l('No'),
+               nzOnOk: () => {
+                  const input = new MoveOrganizationUnitInput();
+                  // tslint:disable-next-line:radix
+                  input.id = parseInt(this.dragSrcNode.key);
+                  input.newParentId =
+                     this.dragTargetNode === null
+                        ? undefined
+                        : // tslint:disable-next-line:radix
+                          parseInt(this.dragTargetNode.key);
+                  this._organizationUnitService
+                     .move(input)
+                     .pipe(
+                        finalize(() => {
+                           this.draging = false;
+                           this.reload();
+                        }),
+                        catchError((error) => {
+                           return throwError(error);
+                        })
+                     )
+                     .subscribe(() => {
+                        this.msgSrv.success(this.l('SuccessfullyMoved'));
+                     });
+               },
+               nzOnCancel: () => {
                   this.reload();
-                }),
-                catchError((error) => {
-                  return throwError(error);
-                }),
-              )
-              .subscribe(() => {
-                this.msgSrv.success(this.l('SuccessfullyMoved'));
-              });
-          },
-          nzOnCancel: () => {
-            this.reload();
-            this.draging = false;
-          },
-        });
+                  this.draging = false;
+               },
+            });
+         }
       }
-    }
-  }
+   }
 
-  createContextMenu($event: MouseEvent, menu: NzDropdownMenuComponent, node: NzTreeNode): void {
-    this._nzContextMenuService.create($event, menu);
-    this._setActiveNodeValue(node);
-  }
+   createContextMenu($event: MouseEvent, menu: NzDropdownMenuComponent, node: NzTreeNode): void {
+      this._nzContextMenuService.create($event, menu);
+      this._setActiveNodeValue(node);
+   }
 
-  addUnit(parentId?: number): void {
-    if (!parentId) {
-      this._setActiveNodeNull();
-    }
-    let _parentDisplayName = null;
-    if (this.activedNode) {
-      _parentDisplayName = this.activedNode.title;
-    }
-    this.modalHelper
-      .createStatic(
-        CreateOrEditUnitModalComponent,
-        {
-          organizationUnit: {
-            parentId: parentId,
-            parentDisplayName: _parentDisplayName,
-          },
-        },
-        { size: 'md' },
-      )
-      .subscribe((res: OrganizationUnitListDto) => {
-        if (res) {
-          this.unitCreated(res);
-        }
-      });
-  }
-
-  unitCreated(ou: OrganizationUnitListDto): void {
-    ou.parentId = 0;
-    const newNode = this._arrayService.arrToTreeNode([ou], {
-      idMapName: 'id',
-      parentIdMapName: 'parentId',
-      titleMapName: 'displayName',
-      cb: (item) => {
-        item.expanded = true;
-      },
-    });
-    if (this.activedNode) {
-      this.activedNode.isLeaf = false;
-      this.activedNode.isExpanded = true;
-      this.activedNode.addChildren(newNode);
-    } else {
-      this._treeData = [...this._treeData, ...newNode];
-    }
-
-    this.totalUnitCount += 1;
-  }
-
-  addSubUnit() {
-    const canManageOrganizationTree = this.isGranted('Pages.Administration.OrganizationUnits.ManageOrganizationTree');
-    if (!canManageOrganizationTree) {
-      return;
-    }
-    if (this.activedNode.key) {
-      this.addUnit(parseInt(this.activedNode.key));
-    }
-  }
-
-  editUnit(): void {
-    const canManageOrganizationTree = this.isGranted('Pages.Administration.OrganizationUnits.ManageOrganizationTree');
-    if (!canManageOrganizationTree) {
-      return;
-    }
-    if (this.activedNode.key) {
-      const ouPars = {
-        id: parseInt(this.activedNode.key),
-        displayName: this.activedNode.title,
-      };
+   addUnit(parentId?: number): void {
+      if (!parentId) {
+         this._setActiveNodeNull();
+      }
+      let _parentDisplayName = null;
+      if (this.activedNode) {
+         _parentDisplayName = this.activedNode.title;
+      }
       this.modalHelper
-        .createStatic(
-          CreateOrEditUnitModalComponent,
-          {
-            organizationUnit: ouPars,
-          },
-          { size: 'md' },
-        )
-        .subscribe((res: OrganizationUnitListDto) => {
-          if (res) {
-            this.activedNode.title = res.displayName;
-          }
-        });
-    }
-  }
+         .createStatic(
+            CreateOrEditUnitModalComponent,
+            {
+               organizationUnit: {
+                  parentId: parentId,
+                  parentDisplayName: _parentDisplayName,
+               },
+            },
+            { size: 'md' }
+         )
+         .subscribe((res: OrganizationUnitListDto) => {
+            if (res) {
+               this.unitCreated(res);
+            }
+         });
+   }
 
-  deleteUnit(): void {
-    if (this.activedNode.key) {
-      this.modalSrv.confirm({
-        nzContent: this.l('OrganizationUnitDeleteWarningMessage', this.activedNode.title),
-        nzOkText: this.l('Yes'),
-        nzCancelText: this.l('No'),
-        nzOnOk: () => {
-          this._organizationUnitService.delete(parseInt(this.activedNode.key, 10)).subscribe(() => {
-            this.totalUnitCount -= 1;
-            this._setActiveNodeNull();
-            this.activedNode.remove();
-            this.msgSrv.success(this.l('SuccessfullyDeleted'));
-          });
-        },
+   unitCreated(ou: OrganizationUnitListDto): void {
+      ou.parentId = 0;
+      const newNode = this._arrayService.arrToTreeNode([ou], {
+         idMapName: 'id',
+         parentIdMapName: 'parentId',
+         titleMapName: 'displayName',
+         cb: (item) => {
+            item.expanded = true;
+         },
       });
-    }
-  }
+      if (this.activedNode) {
+         this.activedNode.isLeaf = false;
+         this.activedNode.isExpanded = true;
+         this.activedNode.addChildren(newNode);
+      } else {
+         this._treeData = [...this._treeData, ...newNode];
+      }
 
-  membersAdded(userIds: number[]): void {
-    this.incrementMemberCount(userIds.length);
-  }
+      this.totalUnitCount += 1;
+   }
 
-  memberRemoved(userIds: number[]): void {
-    this.incrementMemberCount(-userIds.length);
-  }
+   addSubUnit() {
+      const canManageOrganizationTree = this.isGranted('Pages.Administration.OrganizationUnits.ManageOrganizationTree');
+      if (!canManageOrganizationTree) {
+         return;
+      }
+      if (this.activedNode.key) {
+         this.addUnit(parseInt(this.activedNode.key));
+      }
+   }
 
-  incrementMemberCount(incrementAmount: number): void {
-    this.activedNode.origin.memberCount = this.activedNode.origin.memberCount + incrementAmount;
-    if (this.activedNode.origin.memberCount < 0) {
-      this.activedNode.origin.memberCount = 0;
-    }
-  }
+   editUnit(): void {
+      const canManageOrganizationTree = this.isGranted('Pages.Administration.OrganizationUnits.ManageOrganizationTree');
+      if (!canManageOrganizationTree) {
+         return;
+      }
+      if (this.activedNode.key) {
+         const ouPars = {
+            id: parseInt(this.activedNode.key),
+         };
+         this.modalHelper
+            .createStatic(
+               CreateOrEditUnitModalComponent,
+               {
+                  organizationUnit: ouPars,
+               },
+               { size: 'md' }
+            )
+            .subscribe((res: OrganizationUnitListDto) => {
+               if (res) {
+                  this.activedNode.title = res.displayName;
+               }
+            });
+      }
+   }
 
-  rolesAdded(roleIds: number[]): void {
-    this.incrementRoleCount(roleIds.length);
-  }
+   deleteUnit(): void {
+      if (this.activedNode.key) {
+         this.modalSrv.confirm({
+            nzContent: this.l('OrganizationUnitDeleteWarningMessage', this.activedNode.title),
+            nzOkText: this.l('Yes'),
+            nzCancelText: this.l('No'),
+            nzOnOk: () => {
+               this._organizationUnitService.delete(parseInt(this.activedNode.key, 10)).subscribe(() => {
+                  this.totalUnitCount -= 1;
+                  this._setActiveNodeNull();
+                  this.activedNode.remove();
+                  this.msgSrv.success(this.l('SuccessfullyDeleted'));
+               });
+            },
+         });
+      }
+   }
 
-  roleRemoved(roleIds: number[]): void {
-    this.incrementRoleCount(-roleIds.length);
-  }
+   membersAdded(userIds: number[]): void {
+      this.incrementMemberCount(userIds.length);
+   }
 
-  incrementRoleCount(incrementAmount: number): void {
-    this.activedNode.origin.roleCount = this.activedNode.origin.roleCount + incrementAmount;
-    if (this.activedNode.origin.roleCount < 0) {
-      this.activedNode.origin.roleCount = 0;
-    }
-  }
+   memberRemoved(userIds: number[]): void {
+      this.incrementMemberCount(-userIds.length);
+   }
+
+   incrementMemberCount(incrementAmount: number): void {
+      this.activedNode.origin.memberCount = this.activedNode.origin.memberCount + incrementAmount;
+      if (this.activedNode.origin.memberCount < 0) {
+         this.activedNode.origin.memberCount = 0;
+      }
+   }
+
+   rolesAdded(roleIds: number[]): void {
+      this.incrementRoleCount(roleIds.length);
+   }
+
+   roleRemoved(roleIds: number[]): void {
+      this.incrementRoleCount(-roleIds.length);
+   }
+
+   incrementRoleCount(incrementAmount: number): void {
+      this.activedNode.origin.roleCount = this.activedNode.origin.roleCount + incrementAmount;
+      if (this.activedNode.origin.roleCount < 0) {
+         this.activedNode.origin.roleCount = 0;
+      }
+   }
 }
